@@ -10,7 +10,7 @@ async function main() {
 
   // Check deployer balance
   const balance = await deployer.getBalance();
-  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "XFI");
+  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "Base");
 
   // Token configuration
   const TOKEN_NAME = "Stake and Bake Fractional Token";

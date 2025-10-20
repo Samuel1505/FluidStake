@@ -17,7 +17,7 @@ interface ISbFTToken {
  */
 contract FluidStakeNFT is ERC721, Ownable, ReentrancyGuard {
     
-    IERC20 public baseToken;
+    IERC20 public ethToken;
     ISbFTToken public sbftToken;
     address public stakingContract;
     
@@ -52,14 +52,14 @@ contract FluidStakeNFT is ERC721, Ownable, ReentrancyGuard {
     constructor(
         string memory name,
         string memory symbol,
-        address _baseToken,
+        address _ethToken,
         address _sbftToken,
         string memory _tokenURIParam
     ) ERC721(name, symbol) Ownable(msg.sender) {
-        require(_baseToken != address(0), "Invalid base token");
+        require(_ethToken != address(0), "Invalid eth token");
         require(_sbftToken != address(0), "Invalid sbFT token");
         
-        baseToken = IERC20(_baseToken);
+        ethToken = IERC20(_ethToken);
         sbftToken = ISbFTToken(_sbftToken);
         _tokenURI = _tokenURIParam;
         lastDistributionTime = block.timestamp;
@@ -91,7 +91,7 @@ contract FluidStakeNFT is ERC721, Ownable, ReentrancyGuard {
     
     /**
      * @dev Receive fees from staking contract
-     * @param amount Amount of base fees received
+     * @param amount Amount of eth fees received
      */
     function distributeFees(uint256 amount) external {
         require(msg.sender == stakingContract, "Only staking contract can send fees");
@@ -161,7 +161,7 @@ contract FluidStakeNFT is ERC721, Ownable, ReentrancyGuard {
         }
         
         // Transfer rewards to user
-        require(baseToken.transfer(msg.sender, totalRewards), "Reward transfer failed");
+        require(ethToken.transfer(msg.sender, totalRewards), "Reward transfer failed");
     }
     
     /**
@@ -252,7 +252,7 @@ contract FluidStakeNFT is ERC721, Ownable, ReentrancyGuard {
      * @dev Emergency withdraw function (only owner)
      */
     function emergencyWithdraw() external onlyOwner {
-        uint256 balance = baseToken.balanceOf(address(this));
-        require(baseToken.transfer(owner(), balance), "Emergency withdraw failed");
+        uint256 balance = ethToken.balanceOf(address(this));
+        require(ethToken.transfer(owner(), balance), "Emergency withdraw failed");
     }
 }

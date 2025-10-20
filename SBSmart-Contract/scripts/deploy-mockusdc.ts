@@ -56,7 +56,7 @@ async function main() {
   console.log(`   Owner Balance: ${ethers.utils.formatUnits(ownerBalance, decimals)} ${symbol}`);
   console.log(`   Owner Address: ${deployer.address}`);
   console.log(`   Faucet Amount: ${ethers.utils.formatUnits(faucetAmount, decimals)} ${symbol}`);
-  console.log(`   Faucet Cooldown: ${(faucetCooldown / 3600)} hours`);
+  console.log(`   Faucet Cooldown: ${(faucetCooldown.toNumber() / 3600)} hours`);
   
   // Test mint function (optional)
   console.log("\n🧪 Testing mint function...");
@@ -85,7 +85,7 @@ async function main() {
     decimals: decimals,
     totalSupply: ethers.utils.formatUnits(totalSupply, decimals),
     faucetAmount: ethers.utils.formatUnits(faucetAmount, decimals),
-    faucetCooldown: `${faucetCooldown / 3600} hours`,
+    faucetCooldown: `${faucetCooldown.toNumber() / 3600} hours`,
     deploymentTime: new Date().toISOString(),
     transactionHash: mockUSDC.deployTransaction.hash
   };

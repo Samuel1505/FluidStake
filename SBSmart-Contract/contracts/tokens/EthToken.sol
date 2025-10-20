@@ -5,10 +5,10 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 /**
- * @title baseToken
+ * @title ETHToken
  * @dev Standard ERC20 token for Cross Finance - used for staking in Stake and Bake protocol
  */
-contract baseToken is ERC20, Ownable {
+contract ETHToken is ERC20, Ownable {
     
     // Events for subgraph
     event TokensMinted(address indexed to, uint256 amount);

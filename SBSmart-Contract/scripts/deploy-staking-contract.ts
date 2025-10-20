@@ -11,10 +11,10 @@ async function main() {
   
   // Check deployer balance
   const balance = await deployer.getBalance();
-  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "XFI");
+  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "base");
   
   // ⚠️ IMPORTANT: Replace these addresses with your actual deployed contract addresses
-  const XFI_TOKEN_ADDRESS = ""; // Your XFI token address
+  const base_TOKEN_ADDRESS = ""; // Your base token address
   const SBFT_TOKEN_ADDRESS = ""; // ⚠️ SET THIS TO YOUR NEW sbFT TOKEN ADDRESS AFTER DEPLOYING IT
   const MASTER_NFT_ADDRESS = ""; // Your existing Master NFT address
   
@@ -26,7 +26,7 @@ async function main() {
   }
   
   console.log("\n📋 Staking Contract Configuration:");
-  console.log(`   XFI Token: ${XFI_TOKEN_ADDRESS}`);
+  console.log(`   base Token: ${base_TOKEN_ADDRESS}`);
   console.log(`   sbFT Token: ${SBFT_TOKEN_ADDRESS}`);
   console.log(`   Master NFT: ${MASTER_NFT_ADDRESS || "Not set (can be set later)"}`);
   
@@ -35,7 +35,7 @@ async function main() {
   const StakingContractFactory = await ethers.getContractFactory("StakingContract");
   
   const stakingContract = await StakingContractFactory.deploy(
-    XFI_TOKEN_ADDRESS,
+    base_TOKEN_ADDRESS,
     SBFT_TOKEN_ADDRESS
   ) as StakingContract;
   
@@ -101,7 +101,7 @@ async function main() {
   
   // Verify deployment
   console.log("\n🔍 Verifying staking contract deployment...");
-  const xfiToken = await stakingContract.xfiToken();
+  const baseToken = await stakingContract.baseToken();
   const sbftToken = await stakingContract.sbftToken();
   const masterNFT = await stakingContract.masterNFT();
   const unstakingDelay = await stakingContract.unstakingDelay();
@@ -111,26 +111,26 @@ async function main() {
   const exchangeRate = await stakingContract.getExchangeRate();
   
   console.log("📊 Contract Details:");
-  console.log(`   XFI Token: ${xfiToken}`);
+  console.log(`   base Token: ${baseToken}`);
   console.log(`   sbFT Token: ${sbftToken}`);
   console.log(`   Master NFT: ${masterNFT}`);
   console.log(`   Unstaking Delay: ${unstakingDelay.toString()} seconds (${unstakingDelay.toNumber() / 86400} days)`);
   console.log(`   Annual Reward Rate: ${annualRewardRate.toString()} basis points (${annualRewardRate.toNumber() / 100}% APY)`);
-  console.log(`   Min Stake: ${ethers.utils.formatEther(minStake)} XFI`);
-  console.log(`   Current Exchange Rate: ${ethers.utils.formatEther(exchangeRate)} XFI per sbFT`);
+  console.log(`   Min Stake: ${ethers.utils.formatEther(minStake)} base`);
+  console.log(`   Current Exchange Rate: ${ethers.utils.formatEther(exchangeRate)} base per sbFT`);
   console.log(`   Owner: ${owner}`);
   
   // Get contract statistics
   const [totalStaked, totalFeesCollected, currentRewardRate] = await stakingContract.getContractStats();
-  console.log(`   Total XFI in Pool: ${ethers.utils.formatEther(totalStaked)} XFI`);
-  console.log(`   Total Fees Collected: ${ethers.utils.formatEther(totalFeesCollected)} XFI`);
+  console.log(`   Total base in Pool: ${ethers.utils.formatEther(totalStaked)} base`);
+  console.log(`   Total Fees Collected: ${ethers.utils.formatEther(totalFeesCollected)} base`);
   console.log(`   Current Reward Rate: ${currentRewardRate.toString()} basis points`);
   
   // Get additional liquid staking info
   const totalPendingUnstakes = await stakingContract.totalPendingUnstakes();
-  const availableXFI = await stakingContract.getAvailableXFI();
-  console.log(`   Total Pending Unstakes: ${ethers.utils.formatEther(totalPendingUnstakes)} XFI`);
-  console.log(`   Available XFI for Unstaking: ${ethers.utils.formatEther(availableXFI)} XFI`);
+  const availablebase = await stakingContract.getAvailablebase();
+  console.log(`   Total Pending Unstakes: ${ethers.utils.formatEther(totalPendingUnstakes)} base`);
+  console.log(`   Available base for Unstaking: ${ethers.utils.formatEther(availablebase)} base`);
   
   // Save deployment info
   const network = await ethers.provider.getNetwork();
@@ -139,7 +139,7 @@ async function main() {
     chainId: network.chainId,
     contractAddress: stakingContractAddress,
     deployer: deployer.address,
-    xfiTokenAddress: xfiToken,
+    baseTokenAddress: baseToken,
     sbftTokenAddress: sbftToken,
     masterNFTAddress: masterNFT,
     unstakingDelay: unstakingDelay.toString(),
@@ -156,13 +156,13 @@ async function main() {
   console.log(`Network: ${deploymentInfo.network} (Chain ID: ${deploymentInfo.chainId})`);
   console.log(`Staking Contract: ${deploymentInfo.contractAddress}`);
   console.log(`Deployer: ${deploymentInfo.deployer}`);
-  console.log(`XFI Token: ${deploymentInfo.xfiTokenAddress}`);
+  console.log(`base Token: ${deploymentInfo.baseTokenAddress}`);
   console.log(`sbFT Token: ${deploymentInfo.sbftTokenAddress}`);
   console.log(`Master NFT: ${deploymentInfo.masterNFTAddress}`);
   console.log(`Unstaking Delay: ${parseInt(deploymentInfo.unstakingDelay) / 86400} days`);
   console.log(`Reward Rate: ${parseInt(deploymentInfo.annualRewardRate) / 100}% APY`);
-  console.log(`Min Stake: ${ethers.utils.formatEther(deploymentInfo.minStake)} XFI`);
-  console.log(`Exchange Rate: ${ethers.utils.formatEther(deploymentInfo.exchangeRate)} XFI per sbFT`);
+  console.log(`Min Stake: ${ethers.utils.formatEther(deploymentInfo.minStake)} base`);
+  console.log(`Exchange Rate: ${ethers.utils.formatEther(deploymentInfo.exchangeRate)} base per sbFT`);
   console.log(`Owner: ${deploymentInfo.owner}`);
   console.log(`Transaction Hash: ${deploymentInfo.transactionHash}`);
   console.log(`Deployment Time: ${deploymentInfo.deploymentTime}`);
@@ -192,7 +192,7 @@ async function main() {
   console.log("Your fresh staking system is now deployed and configured:");
   console.log(`   🏦 Staking Contract: ${stakingContractAddress}`);
   console.log(`   🪙 sbFT Token: ${SBFT_TOKEN_ADDRESS}`);
-  console.log(`   💰 XFI Token: ${XFI_TOKEN_ADDRESS}`);
+  console.log(`   💰 base Token: ${base_TOKEN_ADDRESS}`);
   console.log(`   🎨 Master NFT: ${MASTER_NFT_ADDRESS}`);
   
   return {
