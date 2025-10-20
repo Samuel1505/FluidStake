@@ -1,3 +1,4 @@
+
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 import "@nomiclabs/hardhat-ethers";
@@ -43,12 +44,11 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 1337,
     },
-    crossfi_testnet: {
-      url: process.env.CROSSFI_TESTNET_RPC || "https://rpc.testnet.ms",
+    base_sepolia: {
+      url: process.env.BASE_SEPOLIA_RPC || "https://sepolia.base.org",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: parseInt(process.env.CROSSFI_TESTNET_CHAIN_ID || "4157"),
+      chainId: 84532,
       gasPrice: "auto",
-      gas: "auto",
     },
   },
   typechain: {
@@ -60,7 +60,19 @@ const config: HardhatUserConfig = {
     currency: "USD",
   },
   etherscan: {
-    apiKey: process.env.ETHERSCAN_API_KEY,
+    apiKey: {
+      baseSepolia: process.env.BASESCAN_API_KEY || "",
+    },
+    customChains: [
+      {
+        network: "baseSepolia",
+        chainId: 84532,
+        urls: {
+          apiURL: "https://api-sepolia.basescan.org/api",
+          browserURL: "https://sepolia.basescan.org"
+        }
+      }
+    ]
   },
 };
 
