@@ -15,9 +15,9 @@ interface ISbFTToken {
  * @title StakeAndBakeNFT
  * @dev Master NFT contract that collects protocol revenue and distributes to sbFT holders
  */
-contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
+contract FluidStakeNFT is ERC721, Ownable, ReentrancyGuard {
     
-    IERC20 public xfiToken;
+    IERC20 public baseToken;
     ISbFTToken public sbftToken;
     address public stakingContract;
     
@@ -52,14 +52,14 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
     constructor(
         string memory name,
         string memory symbol,
-        address _xfiToken,
+        address _baseToken,
         address _sbftToken,
         string memory _tokenURIParam
     ) ERC721(name, symbol) Ownable(msg.sender) {
-        require(_xfiToken != address(0), "Invalid XFI token");
+        require(_baseToken != address(0), "Invalid base token");
         require(_sbftToken != address(0), "Invalid sbFT token");
         
-        xfiToken = IERC20(_xfiToken);
+        baseToken = IERC20(_baseToken);
         sbftToken = ISbFTToken(_sbftToken);
         _tokenURI = _tokenURIParam;
         lastDistributionTime = block.timestamp;
@@ -91,7 +91,7 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
     
     /**
      * @dev Receive fees from staking contract
-     * @param amount Amount of XFI fees received
+     * @param amount Amount of base fees received
      */
     function distributeFees(uint256 amount) external {
         require(msg.sender == stakingContract, "Only staking contract can send fees");
@@ -161,7 +161,7 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
         }
         
         // Transfer rewards to user
-        require(xfiToken.transfer(msg.sender, totalRewards), "Reward transfer failed");
+        require(baseToken.transfer(msg.sender, totalRewards), "Reward transfer failed");
     }
     
     /**
@@ -252,7 +252,7 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
      * @dev Emergency withdraw function (only owner)
      */
     function emergencyWithdraw() external onlyOwner {
-        uint256 balance = xfiToken.balanceOf(address(this));
-        require(xfiToken.transfer(owner(), balance), "Emergency withdraw failed");
+        uint256 balance = baseToken.balanceOf(address(this));
+        require(baseToken.transfer(owner(), balance), "Emergency withdraw failed");
     }
 }

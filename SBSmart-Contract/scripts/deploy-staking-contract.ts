@@ -14,9 +14,9 @@ async function main() {
   console.log("💰 Account balance:", ethers.utils.formatEther(balance), "XFI");
   
   // ⚠️ IMPORTANT: Replace these addresses with your actual deployed contract addresses
-  const XFI_TOKEN_ADDRESS = "0xF321b818669d56C8f11b3617429cD987c745B0D2"; // Your XFI token address
-  const SBFT_TOKEN_ADDRESS = "0x9c020d7AF67aB9B77488E9554bC09dDBB2348535"; // ⚠️ SET THIS TO YOUR NEW sbFT TOKEN ADDRESS AFTER DEPLOYING IT
-  const MASTER_NFT_ADDRESS = "0x9F69a019DC9F4a4A30a255B572E7F425a7814637"; // Your existing Master NFT address
+  const XFI_TOKEN_ADDRESS = ""; // Your XFI token address
+  const SBFT_TOKEN_ADDRESS = ""; // ⚠️ SET THIS TO YOUR NEW sbFT TOKEN ADDRESS AFTER DEPLOYING IT
+  const MASTER_NFT_ADDRESS = ""; // Your existing Master NFT address
   
   // Validation
   if (!SBFT_TOKEN_ADDRESS) {
