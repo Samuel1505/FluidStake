@@ -1,20 +1,20 @@
 import { ethers } from "hardhat";
-import { XFIToken } from "../typechain-types/contracts/tokens/XFIToken";
+import { ETHToken } from "../typechain-types/contracts/tokens/EthToken.sol";
 
 async function main() {
-  console.log("🚀 Starting XFIToken deployment...");
+  console.log("🚀 Starting EthToken deployment...");
   
   // Get the deployer account
   const [deployer] = await ethers.getSigners();
   console.log("📝 Deploying contracts with the account:", deployer.address);
   
   // Check deployer balance
-  const balance = await deployer.getBalance();
-  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "XFI");
+  const balance = await ethers.provider.getBalance(deployer.address);
+  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "ETH");
   
   // Token configuration
-  const TOKEN_NAME = "Cross Finance Token";
-  const TOKEN_SYMBOL = "XFI";
+  const TOKEN_NAME = "Ethereum Token";
+  const TOKEN_SYMBOL = "ETH";
   const INITIAL_SUPPLY = 1000000; // 1 million tokens
   
   console.log("\n📋 Token Configuration:");
@@ -23,28 +23,28 @@ async function main() {
   console.log(`   Initial Supply: ${INITIAL_SUPPLY.toLocaleString()} tokens`);
   
   // Deploy the contract
-  console.log("\n⏳ Deploying XFIToken contract...");
-  const XFITokenFactory = await ethers.getContractFactory("XFIToken");
+  console.log("\n⏳ Deploying EthToken contract...");
+  const ETHTokenFactory = await ethers.getContractFactory("ETHToken");
   
-  const xfiToken = await XFITokenFactory.deploy(
+  const EthToken = await ETHTokenFactory.deploy(
     TOKEN_NAME,
     TOKEN_SYMBOL,
     INITIAL_SUPPLY
-  ) as XFIToken;
+  ) as EthToken;
   
   console.log("⏳ Waiting for deployment confirmation...");
-  await xfiToken.deployed();
+  await EthToken.deployed();
   
-  const contractAddress = xfiToken.address;
-  console.log(`✅ XFIToken deployed to: ${contractAddress}`);
+  const contractAddress = EthToken.address;
+  console.log(`✅ EthToken deployed to: ${contractAddress}`);
   
   // Verify deployment
   console.log("\n🔍 Verifying deployment...");
-  const name = await xfiToken.name();
-  const symbol = await xfiToken.symbol();
-  const decimals = await xfiToken.decimals();
-  const totalSupply = await xfiToken.totalSupply();
-  const ownerBalance = await xfiToken.balanceOf(deployer.address);
+  const name = await EthToken.name();
+  const symbol = await EthToken.symbol();
+  const decimals = await EthToken.decimals();
+  const totalSupply = await EthToken.totalSupply();
+  const ownerBalance = await EthToken.balanceOf(deployer.address);
   
   console.log("📊 Contract Details:");
   console.log(`   Name: ${name}`);
@@ -57,25 +57,30 @@ async function main() {
   // Test mint function (optional)
   console.log("\n🧪 Testing mint function...");
   const testMintAmount = ethers.utils.parseEther("1000"); // 1000 tokens
-  const mintTx = await xfiToken.mint(deployer.address, testMintAmount);
+  const mintTx = await EthToken.mint(deployer.address, testMintAmount);
   await mintTx.wait();
   
-  const newBalance = await xfiToken.balanceOf(deployer.address);
+  const newBalance = await EthToken.balanceOf(deployer.address);
+  const newTotalSupply = await EthToken.totalSupply();
   console.log(`✅ Minted 1000 tokens. New balance: ${ethers.utils.formatEther(newBalance)} ${symbol}`);
+  console.log(`📈 New Total Supply: ${ethers.utils.formatEther(newTotalSupply)} ${symbol}`);
   
   // Save deployment info
   const network = await ethers.provider.getNetwork();
+  const deploymentTx = EthToken.deploymentTransaction();
+  
   const deploymentInfo = {
     network: network.name,
-    chainId: network.chainId,
+    chainId: network.chainId.toString(),
     contractAddress: contractAddress,
     deployer: deployer.address,
     tokenName: name,
     tokenSymbol: symbol,
-    decimals: decimals,
+    decimals: decimals.toString(),
     initialSupply: ethers.utils.formatEther(totalSupply),
+    currentSupply: ethers.utils.formatEther(newTotalSupply),
     deploymentTime: new Date().toISOString(),
-    transactionHash: xfiToken.deployTransaction.hash
+    transactionHash: deploymentTx?.hash || "N/A"
   };
   
   console.log("\n📋 Deployment Summary:");
@@ -84,12 +89,13 @@ async function main() {
   console.log(`Contract Address: ${deploymentInfo.contractAddress}`);
   console.log(`Deployer: ${deploymentInfo.deployer}`);
   console.log(`Token: ${deploymentInfo.tokenName} (${deploymentInfo.tokenSymbol})`);
-  console.log(`Total Supply: ${deploymentInfo.initialSupply} ${deploymentInfo.tokenSymbol}`);
+  console.log(`Initial Supply: ${deploymentInfo.initialSupply} ${deploymentInfo.tokenSymbol}`);
+  console.log(`Current Supply: ${deploymentInfo.currentSupply} ${deploymentInfo.tokenSymbol}`);
   console.log(`Transaction Hash: ${deploymentInfo.transactionHash}`);
   console.log(`Deployment Time: ${deploymentInfo.deploymentTime}`);
   console.log("================================");
   
-  // Optional: Save to file for future reference
+  // Save to file for future reference
   const fs = require('fs');
   const path = require('path');
   
@@ -98,18 +104,24 @@ async function main() {
     fs.mkdirSync(deploymentsDir, { recursive: true });
   }
   
-  const deploymentFile = path.join(deploymentsDir, `xfi-token-${deploymentInfo.chainId}.json`);
+  const deploymentFile = path.join(deploymentsDir, `eth-token-${deploymentInfo.chainId}.json`);
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
   console.log(`📁 Deployment info saved to: ${deploymentFile}`);
   
-  console.log("\n🎉 XFIToken deployment completed successfully!");
+  console.log("\n🎉 EthToken deployment completed successfully!");
   console.log("\n💡 Next steps:");
   console.log("1. Verify the contract on the explorer if needed");
-  console.log("2. Test the contract functions");
-  console.log("3. Use this token address in your Stake and Bake protocol");
+  console.log("2. Test the contract functions (transfer, mint, burn)");
+  console.log("3. Use this token address in your FluidStake protocol");
+  console.log("\n🔗 Important Contract Functions:");
+  console.log("- mint(address, uint256): Mint new tokens (owner only)");
+  console.log("- burn(uint256): Burn tokens from your balance");
+  console.log("- burnFrom(address, uint256): Burn tokens from another address (with approval)");
+  console.log("- transfer(address, uint256): Transfer tokens");
+  console.log("- approve(address, uint256): Approve spending");
   
   return {
-    contract: xfiToken,
+    contract: EthToken,
     address: contractAddress,
     deploymentInfo
   };

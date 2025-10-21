@@ -1,215 +1,124 @@
-import { ethers } from "hardhat";
-import { StakingContract } from "../typechain-types/contracts/core/StakingContract.sol";
-import { SbFTToken } from "../typechain-types/contracts/tokens/sbFTToken.sol/SbFTToken";
+const hre = require("hardhat");
+const { ethers } = require("hardhat");
 
 async function main() {
-  console.log("🚀 Starting StakingContract deployment...");
-  
-  // Get the deployer account
+  console.log("Starting deployment process...\n");
+
+  // Get deployer account
   const [deployer] = await ethers.getSigners();
-  console.log("📝 Deploying contracts with the account:", deployer.address);
-  
-  // Check deployer balance
-  const balance = await deployer.getBalance();
-  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "base");
-  
-  // ⚠️ IMPORTANT: Replace these addresses with your actual deployed contract addresses
-  const base_TOKEN_ADDRESS = ""; // Your base token address
-  const SBFT_TOKEN_ADDRESS = ""; // ⚠️ SET THIS TO YOUR NEW sbFT TOKEN ADDRESS AFTER DEPLOYING IT
-  const MASTER_NFT_ADDRESS = ""; // Your existing Master NFT address
-  
-  // Validation
-  if (!SBFT_TOKEN_ADDRESS) {
-    console.error("❌ Please set SBFT_TOKEN_ADDRESS to your newly deployed sbFT token address");
-    console.log("💡 Deploy the sbFT token first, then update this script with the address");
-    process.exit(1);
+  console.log("Deploying contracts with account:", deployer.address);
+  console.log("Account balance:", ethers.formatEther(await ethers.provider.getBalance(deployer.address)), "ETH\n");
+
+  // Configuration - UPDATE THESE ADDRESSES
+  const ETH_TOKEN_ADDRESS = process.env.ETH_TOKEN_ADDRESS || "0x0000000000000000000000000000000000000000";
+  const SBFT_TOKEN_ADDRESS = process.env.SBFT_TOKEN_ADDRESS || "0x0000000000000000000000000000000000000000";
+  const MASTER_NFT_ADDRESS = process.env.MASTER_NFT_ADDRESS || ""; // Optional, can be set later
+
+  // Validate addresses
+  if (ETH_TOKEN_ADDRESS === "0x0000000000000000000000000000000000000000") {
+    throw new Error("ETH_TOKEN_ADDRESS not set. Please set it in .env file or environment variables");
   }
-  
-  console.log("\n📋 Staking Contract Configuration:");
-  console.log(`   base Token: ${base_TOKEN_ADDRESS}`);
-  console.log(`   sbFT Token: ${SBFT_TOKEN_ADDRESS}`);
-  console.log(`   Master NFT: ${MASTER_NFT_ADDRESS || "Not set (can be set later)"}`);
-  
-  // Deploy the contract
-  console.log("\n⏳ Deploying StakingContract...");
-  const StakingContractFactory = await ethers.getContractFactory("StakingContract");
-  
-  const stakingContract = await StakingContractFactory.deploy(
-    base_TOKEN_ADDRESS,
+  if (SBFT_TOKEN_ADDRESS === "0x0000000000000000000000000000000000000000") {
+    throw new Error("SBFT_TOKEN_ADDRESS not set. Please set it in .env file or environment variables");
+  }
+
+  console.log("Configuration:");
+  console.log("- ETH Token Address:", ETH_TOKEN_ADDRESS);
+  console.log("- sbFT Token Address:", SBFT_TOKEN_ADDRESS);
+  console.log("- Master NFT Address:", MASTER_NFT_ADDRESS || "(will be set later)");
+  console.log("");
+
+  // Deploy StakingContract
+  console.log("Deploying StakingContract...");
+  const StakingContract = await ethers.getContractFactory("StakingContract");
+  const stakingContract = await StakingContract.deploy(
+    ETH_TOKEN_ADDRESS,
     SBFT_TOKEN_ADDRESS
-  ) as StakingContract;
+  );
+
+  await stakingContract.waitForDeployment();
+  const stakingAddress = await stakingContract.getAddress();
   
-  console.log("⏳ Waiting for deployment confirmation...");
-  await stakingContract.deployed();
-  
-  const stakingContractAddress = stakingContract.address;
-  console.log(`✅ StakingContract deployed to: ${stakingContractAddress}`);
-  
-  // Set Master NFT if provided
-  if (MASTER_NFT_ADDRESS && MASTER_NFT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
-    console.log("\n🔗 Setting Master NFT address...");
-    const setMasterNFTTx = await stakingContract.setMasterNFT(MASTER_NFT_ADDRESS);
-    await setMasterNFTTx.wait();
-    console.log(`✅ Master NFT address set to: ${MASTER_NFT_ADDRESS}`);
+  console.log("✅ StakingContract deployed to:", stakingAddress);
+  console.log("");
+
+  // Set Master NFT if address is provided
+  if (MASTER_NFT_ADDRESS && MASTER_NFT_ADDRESS !== "") {
+    console.log("Setting Master NFT address...");
+    const tx = await stakingContract.setMasterNFT(MASTER_NFT_ADDRESS);
+    await tx.wait();
+    console.log("✅ Master NFT address set successfully");
+    console.log("");
+  } else {
+    console.log("⚠️  Master NFT address not set. You can set it later using setMasterNFT()");
+    console.log("");
   }
-  
-  // 🔥 CRITICAL STEP: Set this staking contract as the authorized minter/burner on sbFT token
-  console.log("\n🔥 CRITICAL: Setting staking contract authorization on sbFT token...");
-  try {
-    const sbftToken = new ethers.Contract(
-      SBFT_TOKEN_ADDRESS,
-      [
-        "function setStakingContract(address) external",
-        "function stakingContract() view returns (address)",
-        "function owner() view returns (address)"
-      ],
-      deployer
-    );
-    
-    const currentStakingContract = await sbftToken.stakingContract();
-    const sbftOwner = await sbftToken.owner();
-    
-    console.log(`   Current sbFT staking contract: ${currentStakingContract}`);
-    console.log(`   sbFT token owner: ${sbftOwner}`);
-    console.log(`   Deployer address: ${deployer.address}`);
-    
-    if (sbftOwner.toLowerCase() !== deployer.address.toLowerCase()) {
-      console.error("❌ You are not the owner of the sbFT token contract!");
-      console.log("💡 Either:");
-      console.log("   1. Deploy a new sbFT token with your address as owner");
-      console.log("   2. Ask the current owner to call setStakingContract()");
-      process.exit(1);
-    }
-    
-    if (currentStakingContract.toLowerCase() !== stakingContractAddress.toLowerCase()) {
-      console.log("🔧 Setting new staking contract address on sbFT token...");
-      const setStakingTx = await sbftToken.setStakingContract(stakingContractAddress);
-      await setStakingTx.wait();
-      console.log(`✅ sbFT token now authorizes staking contract: ${stakingContractAddress}`);
-    } else {
-      console.log("✅ sbFT token already has correct staking contract set");
-    }
-    
-    // Verify the setting
-    const newStakingContract = await sbftToken.stakingContract();
-    console.log(`✅ Verified: sbFT staking contract is now: ${newStakingContract}`);
-    
-  } catch (error: any) {
-    console.error("❌ Failed to set staking contract on sbFT token:", error.message);
-    console.log("⚠️  You'll need to manually call setStakingContract() on the sbFT token");
+
+  // Verify contract parameters
+  console.log("Contract Parameters:");
+  console.log("- Staking Fee:", (await stakingContract.STAKING_FEE()).toString(), "basis points (1%)");
+  console.log("- Minimum Stake:", ethers.formatEther(await stakingContract.MIN_STAKE()), "tokens");
+  console.log("- Unstaking Delay:", (await stakingContract.unstakingDelay()).toString(), "seconds (7 days)");
+  console.log("- Annual Reward Rate:", (await stakingContract.annualRewardRate()).toString(), "basis points (8%)");
+  console.log("- Initial Exchange Rate:", ethers.formatEther(await stakingContract.getExchangeRate()), "ETH per sbFT");
+  console.log("");
+
+  // Deployment summary
+  console.log("=".repeat(60));
+  console.log("DEPLOYMENT SUMMARY");
+  console.log("=".repeat(60));
+  console.log("Network:", hre.network.name);
+  console.log("Deployer:", deployer.address);
+  console.log("StakingContract:", stakingAddress);
+  console.log("ETH Token:", ETH_TOKEN_ADDRESS);
+  console.log("sbFT Token:", SBFT_TOKEN_ADDRESS);
+  console.log("Master NFT:", MASTER_NFT_ADDRESS || "(not set)");
+  console.log("=".repeat(60));
+  console.log("");
+
+  // Next steps
+  console.log("NEXT STEPS:");
+  console.log("1. Grant MINTER_ROLE to StakingContract on sbFT token:");
+  console.log(`   sbFTToken.grantRole(MINTER_ROLE, "${stakingAddress}")`);
+  console.log("");
+  console.log("2. Grant BURNER_ROLE to StakingContract on sbFT token:");
+  console.log(`   sbFTToken.grantRole(BURNER_ROLE, "${stakingAddress}")`);
+  console.log("");
+  if (!MASTER_NFT_ADDRESS || MASTER_NFT_ADDRESS === "") {
+    console.log("3. Set Master NFT address when available:");
+    console.log(`   stakingContract.setMasterNFT(MASTER_NFT_ADDRESS)`);
+    console.log("");
   }
-  
-  // Verify deployment
-  console.log("\n🔍 Verifying staking contract deployment...");
-  const baseToken = await stakingContract.baseToken();
-  const sbftToken = await stakingContract.sbftToken();
-  const masterNFT = await stakingContract.masterNFT();
-  const unstakingDelay = await stakingContract.unstakingDelay();
-  const annualRewardRate = await stakingContract.annualRewardRate();
-  const minStake = await stakingContract.minStake();
-  const owner = await stakingContract.owner();
-  const exchangeRate = await stakingContract.getExchangeRate();
-  
-  console.log("📊 Contract Details:");
-  console.log(`   base Token: ${baseToken}`);
-  console.log(`   sbFT Token: ${sbftToken}`);
-  console.log(`   Master NFT: ${masterNFT}`);
-  console.log(`   Unstaking Delay: ${unstakingDelay.toString()} seconds (${unstakingDelay.toNumber() / 86400} days)`);
-  console.log(`   Annual Reward Rate: ${annualRewardRate.toString()} basis points (${annualRewardRate.toNumber() / 100}% APY)`);
-  console.log(`   Min Stake: ${ethers.utils.formatEther(minStake)} base`);
-  console.log(`   Current Exchange Rate: ${ethers.utils.formatEther(exchangeRate)} base per sbFT`);
-  console.log(`   Owner: ${owner}`);
-  
-  // Get contract statistics
-  const [totalStaked, totalFeesCollected, currentRewardRate] = await stakingContract.getContractStats();
-  console.log(`   Total base in Pool: ${ethers.utils.formatEther(totalStaked)} base`);
-  console.log(`   Total Fees Collected: ${ethers.utils.formatEther(totalFeesCollected)} base`);
-  console.log(`   Current Reward Rate: ${currentRewardRate.toString()} basis points`);
-  
-  // Get additional liquid staking info
-  const totalPendingUnstakes = await stakingContract.totalPendingUnstakes();
-  const availablebase = await stakingContract.getAvailablebase();
-  console.log(`   Total Pending Unstakes: ${ethers.utils.formatEther(totalPendingUnstakes)} base`);
-  console.log(`   Available base for Unstaking: ${ethers.utils.formatEther(availablebase)} base`);
-  
-  // Save deployment info
-  const network = await ethers.provider.getNetwork();
-  const deploymentInfo = {
-    network: network.name,
-    chainId: network.chainId,
-    contractAddress: stakingContractAddress,
-    deployer: deployer.address,
-    baseTokenAddress: baseToken,
-    sbftTokenAddress: sbftToken,
-    masterNFTAddress: masterNFT,
-    unstakingDelay: unstakingDelay.toString(),
-    annualRewardRate: annualRewardRate.toString(),
-    minStake: minStake.toString(),
-    exchangeRate: exchangeRate.toString(),
-    owner: owner,
-    deploymentTime: new Date().toISOString(),
-    transactionHash: stakingContract.deployTransaction.hash
-  };
-  
-  console.log("\n📋 Deployment Summary:");
-  console.log("================================");
-  console.log(`Network: ${deploymentInfo.network} (Chain ID: ${deploymentInfo.chainId})`);
-  console.log(`Staking Contract: ${deploymentInfo.contractAddress}`);
-  console.log(`Deployer: ${deploymentInfo.deployer}`);
-  console.log(`base Token: ${deploymentInfo.baseTokenAddress}`);
-  console.log(`sbFT Token: ${deploymentInfo.sbftTokenAddress}`);
-  console.log(`Master NFT: ${deploymentInfo.masterNFTAddress}`);
-  console.log(`Unstaking Delay: ${parseInt(deploymentInfo.unstakingDelay) / 86400} days`);
-  console.log(`Reward Rate: ${parseInt(deploymentInfo.annualRewardRate) / 100}% APY`);
-  console.log(`Min Stake: ${ethers.utils.formatEther(deploymentInfo.minStake)} base`);
-  console.log(`Exchange Rate: ${ethers.utils.formatEther(deploymentInfo.exchangeRate)} base per sbFT`);
-  console.log(`Owner: ${deploymentInfo.owner}`);
-  console.log(`Transaction Hash: ${deploymentInfo.transactionHash}`);
-  console.log(`Deployment Time: ${deploymentInfo.deploymentTime}`);
-  console.log("================================");
-  
-  // Save to file for future reference
+  console.log("4. Verify contract on block explorer (if applicable):");
+  console.log(`   npx hardhat verify --network ${hre.network.name} ${stakingAddress} "${ETH_TOKEN_ADDRESS}" "${SBFT_TOKEN_ADDRESS}"`);
+  console.log("");
+
+  // Save deployment info to file
   const fs = require('fs');
-  const path = require('path');
-  
-  const deploymentsDir = path.join(__dirname, '..', 'deployments');
-  if (!fs.existsSync(deploymentsDir)) {
-    fs.mkdirSync(deploymentsDir, { recursive: true });
-  }
-  
-  const deploymentFile = path.join(deploymentsDir, `staking-contract-${deploymentInfo.chainId}.json`);
-  fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
-  console.log(`📁 Deployment info saved to: ${deploymentFile}`);
-  
-  console.log("\n🎉 StakingContract deployment completed successfully!");
-  console.log("\n💡 Next steps:");
-  console.log("1. Test staking with small amounts");
-  console.log("2. Test the unstaking request/process flow");
-  console.log("3. Verify the exchange rate is working correctly");
-  console.log("4. Configure the Master NFT to recognize this staking contract");
-  
-  console.log("\n✅ READY TO USE!");
-  console.log("Your fresh staking system is now deployed and configured:");
-  console.log(`   🏦 Staking Contract: ${stakingContractAddress}`);
-  console.log(`   🪙 sbFT Token: ${SBFT_TOKEN_ADDRESS}`);
-  console.log(`   💰 base Token: ${base_TOKEN_ADDRESS}`);
-  console.log(`   🎨 Master NFT: ${MASTER_NFT_ADDRESS}`);
-  
-  return {
-    contract: stakingContract,
-    address: stakingContractAddress,
-    deploymentInfo
+  const deploymentInfo = {
+    network: hre.network.name,
+    chainId: (await ethers.provider.getNetwork()).chainId.toString(),
+    deployer: deployer.address,
+    timestamp: new Date().toISOString(),
+    contracts: {
+      StakingContract: stakingAddress,
+      ETHToken: ETH_TOKEN_ADDRESS,
+      sbFTToken: SBFT_TOKEN_ADDRESS,
+      MasterNFT: MASTER_NFT_ADDRESS || null
+    }
   };
+
+  const deploymentPath = `./deployments/${hre.network.name}-deployment.json`;
+  fs.mkdirSync('./deployments', { recursive: true });
+  fs.writeFileSync(deploymentPath, JSON.stringify(deploymentInfo, null, 2));
+  console.log("📝 Deployment info saved to:", deploymentPath);
+  console.log("");
 }
 
-// Handle errors
 main()
-  .then((result) => {
-    console.log("\n✅ Script completed successfully!");
-    process.exit(0);
-  })
+  .then(() => process.exit(0))
   .catch((error) => {
-    console.error("\n❌ Deployment failed:");
+    console.error("Deployment failed:");
     console.error(error);
     process.exit(1);
   });
