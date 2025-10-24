@@ -2,7 +2,6 @@
 pragma solidity ^0.8.19;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
 
@@ -17,7 +16,6 @@ interface ISbFTToken {
  */
 contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
     
-    IERC20 public xfiToken;
     ISbFTToken public sbftToken;
     address public stakingContract;
     
@@ -52,14 +50,11 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
     constructor(
         string memory name,
         string memory symbol,
-        address _xfiToken,
         address _sbftToken,
         string memory _tokenURIParam
     ) ERC721(name, symbol) Ownable(msg.sender) {
-        require(_xfiToken != address(0), "Invalid XFI token");
         require(_sbftToken != address(0), "Invalid sbFT token");
         
-        xfiToken = IERC20(_xfiToken);
         sbftToken = ISbFTToken(_sbftToken);
         _tokenURI = _tokenURIParam;
         lastDistributionTime = block.timestamp;
@@ -91,11 +86,12 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
     
     /**
      * @dev Receive fees from staking contract
-     * @param amount Amount of XFI fees received
+     * @param amount Amount of ETH fees received
      */
-    function distributeFees(uint256 amount) external {
+    function distributeFees(uint256 amount) external payable {
         require(msg.sender == stakingContract, "Only staking contract can send fees");
         require(amount > 0, "Amount must be greater than 0");
+        require(msg.value == amount, "Incorrect ETH amount sent");
         
         accumulatedRevenue += amount;
         
@@ -161,7 +157,8 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
         }
         
         // Transfer rewards to user
-        require(xfiToken.transfer(msg.sender, totalRewards), "Reward transfer failed");
+        (bool success, ) = msg.sender.call{value: totalRewards}("");
+        require(success, "Reward transfer failed");
     }
     
     /**
@@ -252,7 +249,15 @@ contract StakeAndBakeNFT is ERC721, Ownable, ReentrancyGuard {
      * @dev Emergency withdraw function (only owner)
      */
     function emergencyWithdraw() external onlyOwner {
-        uint256 balance = xfiToken.balanceOf(address(this));
-        require(xfiToken.transfer(owner(), balance), "Emergency withdraw failed");
+        uint256 balance = address(this).balance;
+        (bool success, ) = owner().call{value: balance}("");
+        require(success, "Emergency withdraw failed");
+    }
+    
+    /**
+     * @dev Allow contract to receive ETH
+     */
+    receive() external payable {
+        // Allow contract to receive ETH
     }
 }

@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { SbFTMarketplace } from "../typechain-types/contracts/marletplace/sbFTMarketplace.sol";
+import { SbFTMarketplace } from "../typechain-types/contracts/marketplace/sbFTMarketplace.sol";
 
 async function main() {
   console.log("🚀 Starting SbFTMarketplace deployment...");

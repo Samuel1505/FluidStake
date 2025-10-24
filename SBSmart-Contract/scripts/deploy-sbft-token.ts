@@ -1,5 +1,5 @@
 import { ethers } from "hardhat";
-import { SbFTToken } from "../typechain-types/contracts/tokens/SbFTToken.sol";
+import { SbFTToken } from "../typechain-types/contracts/tokens/sbFTToken.sol";
 
 async function main() {
   console.log("🚀 Starting sbFT Token deployment...");
@@ -33,6 +33,11 @@ async function main() {
   
   const contractAddress = sbftToken.address;
   console.log(`✅ sbFT Token deployed to: ${contractAddress}`);
+
+  // Wait for additional confirmations before verification
+  console.log("\n⏳ Waiting for block confirmations...");
+  await sbftToken.deployTransaction.wait(5); // Wait for 5 confirmations
+  console.log("✅ Confirmations received");
 
   // Verify deployment
   console.log("\n🔍 Verifying deployment...");
@@ -76,7 +81,11 @@ async function main() {
     owner: owner,
     stakingContract: stakingContract,
     deploymentTime: new Date().toISOString(),
-    transactionHash: sbftToken.deployTransaction.hash
+    transactionHash: sbftToken.deployTransaction.hash,
+    constructorArgs: {
+      name: TOKEN_NAME,
+      symbol: TOKEN_SYMBOL
+    }
   };
 
   console.log("\n📋 Deployment Summary:");
@@ -105,6 +114,27 @@ async function main() {
   const deploymentFile = path.join(deploymentsDir, `sbft-token-${deploymentInfo.chainId}.json`);
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
   console.log(`📁 Deployment info saved to: ${deploymentFile}`);
+
+  // Verify contract on block explorer
+  console.log("\n🔍 Starting contract verification...");
+  try {
+    const hre = require("hardhat");
+    
+    await hre.run("verify:verify", {
+      address: contractAddress,
+      constructorArguments: [TOKEN_NAME, TOKEN_SYMBOL],
+    });
+    
+    console.log("✅ Contract verified successfully!");
+  } catch (error: any) {
+    if (error.message.toLowerCase().includes("already verified")) {
+      console.log("ℹ️  Contract is already verified");
+    } else {
+      console.error("❌ Verification failed:", error.message);
+      console.log("\n💡 You can verify manually later using:");
+      console.log(`npx hardhat verify --network <network-name> ${contractAddress} "${TOKEN_NAME}" "${TOKEN_SYMBOL}"`);
+    }
+  }
 
   console.log("\n🎉 sbFT Token deployment completed successfully!");
   console.log("\n💡 Next steps:");

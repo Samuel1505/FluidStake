@@ -1,5 +1,6 @@
 import { HardhatUserConfig } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
+import hardhatVerify from "@nomicfoundation/hardhat-verify";  
 import "@nomiclabs/hardhat-ethers";
 import "@typechain/hardhat";
 import dotenv from "dotenv";
@@ -8,6 +9,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const config: HardhatUserConfig = {
+
   solidity: {
     compilers: [
       {
@@ -43,10 +45,10 @@ const config: HardhatUserConfig = {
     hardhat: {
       chainId: 1337,
     },
-    crossfi_testnet: {
-      url: process.env.CROSSFI_TESTNET_RPC || "https://rpc.testnet.ms",
+    base_testnet: {
+      url: process.env.BASE_SEPOLIA_RPC_URL || "https://rpc.testnet.ms",
       accounts: process.env.PRIVATE_KEY ? [process.env.PRIVATE_KEY] : [],
-      chainId: parseInt(process.env.CROSSFI_TESTNET_CHAIN_ID || "4157"),
+      chainId: parseInt(process.env.BASE_TESTNET_CHAIN_ID || "4157"),
       gasPrice: "auto",
       gas: "auto",
     },

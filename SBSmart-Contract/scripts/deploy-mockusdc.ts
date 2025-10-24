@@ -38,6 +38,11 @@ async function main() {
   const contractAddress = mockUSDC.address;
   console.log(`✅ MockUSDC deployed to: ${contractAddress}`);
   
+  // Wait for additional confirmations before verification
+  console.log("\n⏳ Waiting for block confirmations...");
+  await mockUSDC.deployTransaction.wait(5); // Wait for 5 confirmations
+  console.log("✅ Confirmations received");
+  
   // Verify deployment
   console.log("\n🔍 Verifying deployment...");
   const name = await mockUSDC.name();
@@ -87,7 +92,8 @@ async function main() {
     faucetAmount: ethers.utils.formatUnits(faucetAmount, decimals),
     faucetCooldown: `${faucetCooldown / 3600} hours`,
     deploymentTime: new Date().toISOString(),
-    transactionHash: mockUSDC.deployTransaction.hash
+    transactionHash: mockUSDC.deployTransaction.hash,
+    constructorArgs: [] // No constructor arguments
   };
   
   console.log("\n📋 Deployment Summary:");
@@ -104,7 +110,7 @@ async function main() {
   console.log(`Deployment Time: ${deploymentInfo.deploymentTime}`);
   console.log("================================");
   
-  // Optional: Save to file for future reference
+  // Save to file for future reference
   const fs = require('fs');
   const path = require('path');
   
@@ -116,6 +122,27 @@ async function main() {
   const deploymentFile = path.join(deploymentsDir, `mock-usdc-${deploymentInfo.chainId}.json`);
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
   console.log(`📁 Deployment info saved to: ${deploymentFile}`);
+  
+  // Verify contract on block explorer
+  console.log("\n🔍 Starting contract verification...");
+  try {
+    const hre = require("hardhat");
+    
+    await hre.run("verify:verify", {
+      address: contractAddress,
+      constructorArguments: [], // No constructor arguments for MockUSDC
+    });
+    
+    console.log("✅ Contract verified successfully!");
+  } catch (error: any) {
+    if (error.message.toLowerCase().includes("already verified")) {
+      console.log("ℹ️  Contract is already verified");
+    } else {
+      console.error("❌ Verification failed:", error.message);
+      console.log("\n💡 You can verify manually later using:");
+      console.log(`npx hardhat verify --network <network-name> ${contractAddress}`);
+    }
+  }
   
   console.log("\n🎉 MockUSDC deployment completed successfully!");
   console.log("\n💡 Next steps:");
@@ -142,6 +169,7 @@ async function main() {
 main()
   .then((result) => {
     console.log("\n✅ Script completed successfully!");
+    console.log(`📄 MockUSDC Address: ${result.address}`);
     process.exit(0);
   })
   .catch((error) => {
