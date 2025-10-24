@@ -13,8 +13,8 @@ async function main() {
   console.log("💰 Account balance:", ethers.utils.formatEther(balance), "XFI");
   
   // ⚠️ IMPORTANT: Replace these addresses with your actual deployed contract addresses
-  const SBFT_TOKEN_ADDRESS = "0x9c020d7AF67aB9B77488E9554bC09dDBB2348535"; // Replace with your sbFT token address
-  const USDC_TOKEN_ADDRESS = "0xdEFAA5459ba8DcC24A7470DB4835C97B0fdf85fc"; // Replace with your USDC token address
+  const SBFT_TOKEN_ADDRESS = "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6"; // Replace with your sbFT token address
+  const USDC_TOKEN_ADDRESS = "0x631f7E66e9caB44205A5bb2323A2f919de4e903A"; // Replace with your USDC token address
   
   console.log("\n📋 Marketplace Contract Configuration:");
   console.log(`   sbFT Token: ${SBFT_TOKEN_ADDRESS}`);
@@ -45,6 +45,11 @@ async function main() {
   
   const contractAddress = marketplace.address;
   console.log(`✅ SbFTMarketplace deployed to: ${contractAddress}`);
+  
+  // Wait for additional confirmations before verification
+  console.log("\n⏳ Waiting for block confirmations...");
+  await marketplace.deployTransaction.wait(5); // Wait for 5 confirmations
+  console.log("✅ Confirmations received");
   
   // Verify deployment
   console.log("\n🔍 Verifying deployment...");
@@ -106,7 +111,7 @@ async function main() {
     console.log(`   Deployer sbFT Balance: ${ethers.utils.formatEther(deployerSbftBalance)} sbFT`);
     console.log(`   Deployer USDC Balance: ${ethers.utils.formatUnits(deployerUsdcBalance, usdcDecimals)} USDC`);
     
-  } catch (error) {
+  } catch (error: any) {
     console.log(`   ⚠️  Could not verify token contracts: ${error.message}`);
   }
   
@@ -125,6 +130,10 @@ async function main() {
     owner: owner,
     deploymentTime: new Date().toISOString(),
     transactionHash: marketplace.deployTransaction.hash,
+    constructorArgs: {
+      sbftToken: SBFT_TOKEN_ADDRESS,
+      usdcToken: USDC_TOKEN_ADDRESS
+    },
     constants: {
       TRADING_FEE: "250", // 2.5%
       BASIS_POINTS: "10000",
@@ -160,6 +169,30 @@ async function main() {
   const deploymentFile = path.join(deploymentsDir, `sbft-marketplace-${deploymentInfo.chainId}.json`);
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
   console.log(`📁 Deployment info saved to: ${deploymentFile}`);
+  
+  // Verify contract on block explorer
+  console.log("\n🔍 Starting contract verification...");
+  try {
+    const hre = require("hardhat");
+    
+    await hre.run("verify:verify", {
+      address: contractAddress,
+      constructorArguments: [
+        SBFT_TOKEN_ADDRESS,
+        USDC_TOKEN_ADDRESS
+      ],
+    });
+    
+    console.log("✅ Contract verified successfully!");
+  } catch (error: any) {
+    if (error.message.toLowerCase().includes("already verified")) {
+      console.log("ℹ️  Contract is already verified");
+    } else {
+      console.error("❌ Verification failed:", error.message);
+      console.log("\n💡 You can verify manually later using:");
+      console.log(`npx hardhat verify --network <network-name> ${contractAddress} "${SBFT_TOKEN_ADDRESS}" "${USDC_TOKEN_ADDRESS}"`);
+    }
+  }
   
   console.log("\n🎉 SbFTMarketplace deployment completed successfully!");
   console.log("\n💡 Next steps:");
@@ -209,6 +242,7 @@ async function main() {
 main()
   .then((result) => {
     console.log("\n✅ Script completed successfully!");
+    console.log(`📄 SbFTMarketplace Address: ${result.address}`);
     process.exit(0);
   })
   .catch((error) => {

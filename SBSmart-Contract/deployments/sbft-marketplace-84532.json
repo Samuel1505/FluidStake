@@ -1,0 +1,25 @@
+{
+  "network": "unknown",
+  "chainId": 84532,
+  "contractAddress": "0xF3eceC1D96FB5de8efAF9EE6A48f6d365Cf20597",
+  "deployer": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
+  "sbftTokenAddress": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6",
+  "usdcTokenAddress": "0x631f7E66e9caB44205A5bb2323A2f919de4e903A",
+  "tradingFee": "250",
+  "basisPoints": "10000",
+  "minOrderSize": "1000000000000000000",
+  "owner": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
+  "deploymentTime": "2025-10-24T08:43:09.071Z",
+  "transactionHash": "0x4dc8751b7bfcab2baef080ca0fcc0e62337b4182089b817abfac9e9bbded9a75",
+  "constructorArgs": {
+    "sbftToken": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6",
+    "usdcToken": "0x631f7E66e9caB44205A5bb2323A2f919de4e903A"
+  },
+  "constants": {
+    "TRADING_FEE": "250",
+    "BASIS_POINTS": "10000",
+    "MIN_ORDER_SIZE": "1000000000000000000",
+    "USDC_DECIMALS": "6",
+    "SBFT_DECIMALS": "18"
+  }
+}
