@@ -1,12 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { WalletConnectButton } from "./WalletConnectButton";
 import Image from "next/image";
 import { useAccount } from "wagmi";
 import { usePathname } from "next/navigation";
 
-import { EllipsisVertical, X, ChevronDown, ArrowLeftRight, TrendingUp, ExternalLink, Vote, Layers2 } from "lucide-react";
+import {
+  EllipsisVertical,
+  X,
+  ChevronDown,
+  ArrowLeftRight,
+  TrendingUp,
+  ExternalLink,
+  Vote,
+  Layers2,
+} from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { toast } from "react-toastify";
 
@@ -35,10 +44,16 @@ export default function Navbar() {
         setMenuOpen(false);
       }
 
-      if (tradingDropdownRef.current && !tradingDropdownRef.current.contains(e.target as Node)) {
+      if (
+        tradingDropdownRef.current &&
+        !tradingDropdownRef.current.contains(e.target as Node)
+      ) {
         setTradingDropdownOpen(false);
       }
-      if (resourcesDropdownRef.current && !resourcesDropdownRef.current.contains(e.target as Node)) {
+      if (
+        resourcesDropdownRef.current &&
+        !resourcesDropdownRef.current.contains(e.target as Node)
+      ) {
         setResourcesDropdownOpen(false);
       }
     };
@@ -56,12 +71,21 @@ export default function Navbar() {
 
   const tradingItems: NavItem[] = [
     { href: "/marketplace", label: "Marketplace", icon: TrendingUp },
-    { href: "/bridge", label: "Bridge", icon: ArrowLeftRight, comingSoon: true },
+    {
+      href: "/bridge",
+      label: "Bridge",
+      icon: ArrowLeftRight,
+      comingSoon: true,
+    },
   ];
 
   const resourcesItems: NavItem[] = [
-    { href: "https://crossfi.org/", label: "Crossfi", external: true },
-    { href: "https://test.xfiscan.com/dashboard", label: "Explorer", external: true },
+    { href: "https://base.org/", label: "Base", external: true },
+    {
+      href: "https://sepolia.basescan.org/",
+      label: "Explorer",
+      external: true,
+    },
     { href: "/contact-us", label: "Contact Us" },
   ];
 
@@ -72,14 +96,20 @@ export default function Navbar() {
         { href: "/portfolio", label: "Portfolio" },
 
         { href: "/protocol", label: "Governance", icon: Vote },
-
-        
       ]
     : [
         { href: "/", label: "Home" },
-        { href: "https://www.investopedia.com/non-fungible-tokens-nft-5115211", label: "Explore NFTs", external: true },
+        {
+          href: "https://www.investopedia.com/non-fungible-tokens-nft-5115211",
+          label: "Explore NFTs",
+          external: true,
+        },
         { href: "/how-it-works", label: "How It Works" },
-        { href: "https://github.com/DIFoundation/StakeAndBake/blob/main/README.md", label: "Docs", external: true },
+        {
+          href: "https://github.com/DIFoundation/StakeAndBake/blob/main/README.md",
+          label: "Docs",
+          external: true,
+        },
       ];
 
   // Close menu on outside click
@@ -138,9 +168,7 @@ export default function Navbar() {
                 <Link
                   key={id}
                   href={item.href}
-
                   className={`text-sm flex items-center gap-1.5 ${
-
                     pathname === item.href
                       ? "text-purple-400 font-semibold"
                       : "text-gray-300"
@@ -163,7 +191,6 @@ export default function Navbar() {
                   <ChevronDown className="w-4 h-4" />
                 </button>
 
-                
                 {tradingDropdownOpen && (
                   <div className="absolute top-full mt-2 right-0 bg-[#121212]/95 border border-gray-700 rounded-lg shadow-xl min-w-[200px] backdrop-blur-md">
                     {tradingItems.map((item, id) => {
@@ -172,9 +199,12 @@ export default function Navbar() {
                           key={id}
                           href={item.href}
                           className={`flex items-center gap-3 px-4 py-3 text-sm hover:bg-gray-800/50 transition ${
-
-                            pathname === item.href ? "text-white bg-gray-800/30" : "text-gray-300"
-                          } ${id === 0 ? "rounded-t-lg" : ""} ${id === tradingItems.length - 1 ? "rounded-b-lg" : ""}`}
+                            pathname === item.href
+                              ? "text-white bg-gray-800/30"
+                              : "text-gray-300"
+                          } ${id === 0 ? "rounded-t-lg" : ""} ${
+                            id === tradingItems.length - 1 ? "rounded-b-lg" : ""
+                          }`}
                           onClick={() => setTradingDropdownOpen(false)}
                         >
                           <Layers2 className="w-4 h-4" />
@@ -203,20 +233,20 @@ export default function Navbar() {
                 <ChevronDown className="w-4 h-4" />
               </button>
 
-              
               {resourcesDropdownOpen && (
                 <div className="absolute top-full mt-2 right-0 bg-[#121212]/95 border border-gray-700 rounded-lg shadow-xl min-w-[160px] backdrop-blur-md">
-                  {resourcesItems.map((item, id) => (
-
+                  {resourcesItems.map((item, id) =>
                     item.external ? (
                       <a
                         key={id}
                         href={item.href}
                         target="_blank"
                         rel="noopener noreferrer"
-
-                        className={`flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 transition ${id === 0 ? "rounded-t-lg" : ""} ${id === resourcesItems.length - 1 ? "rounded-b-lg" : ""}`}
-
+                        className={`flex items-center gap-2 px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800/50 transition ${
+                          id === 0 ? "rounded-t-lg" : ""
+                        } ${
+                          id === resourcesItems.length - 1 ? "rounded-b-lg" : ""
+                        }`}
                         onClick={() => setResourcesDropdownOpen(false)}
                       >
                         {item.label}
@@ -227,14 +257,18 @@ export default function Navbar() {
                         key={id}
                         href={item.href}
                         className={`block px-4 py-3 text-sm hover:bg-gray-800/50 transition ${
-                          pathname === item.href ? "text-white bg-gray-800/30" : "text-gray-300"
-                        } ${id === 0 ? "rounded-t-lg" : ""} ${id === resourcesItems.length - 1 ? "rounded-b-lg" : ""}`}
+                          pathname === item.href
+                            ? "text-white bg-gray-800/30"
+                            : "text-gray-300"
+                        } ${id === 0 ? "rounded-t-lg" : ""} ${
+                          id === resourcesItems.length - 1 ? "rounded-b-lg" : ""
+                        }`}
                         onClick={() => setResourcesDropdownOpen(false)}
                       >
                         {item.label}
                       </Link>
                     )
-                  ))}
+                  )}
                 </div>
               )}
             </div>
@@ -254,11 +288,7 @@ export default function Navbar() {
 
           {/* Desktop Wallet */}
           <div className="hidden md:flex items-center space-x-4">
-            <ConnectButton
-              accountStatus="address"
-              chainStatus="icon"
-              showBalance={true}
-            />
+            <WalletConnectButton />
           </div>
         </div>
       </div>
@@ -304,10 +334,10 @@ export default function Navbar() {
           {/* Trading Section - Mobile */}
           {isConnected && (
             <div className="border-t border-gray-700 pt-4">
-
-              <h4 className="text-sm font-semibold text-gray-400 mb-3">TRADING</h4>
+              <h4 className="text-sm font-semibold text-gray-400 mb-3">
+                TRADING
+              </h4>
               {tradingItems.map((item, id) => {
-
                 return (
                   <Link
                     key={id}
@@ -319,7 +349,6 @@ export default function Navbar() {
                     } hover:text-white`}
                     onClick={() => setMenuOpen(false)}
                   >
-
                     <Layers2 className="w-4 h-4" />
 
                     {item.label}
@@ -336,8 +365,9 @@ export default function Navbar() {
 
           {/* Resources Section - Mobile */}
           <div className="border-t border-gray-700 pt-4">
-
-            <h4 className="text-sm font-semibold text-gray-400 mb-3">RESOURCES</h4>
+            <h4 className="text-sm font-semibold text-gray-400 mb-3">
+              RESOURCES
+            </h4>
 
             {resourcesItems.map((item, id) =>
               item.external ? (
@@ -358,9 +388,7 @@ export default function Navbar() {
                   className={`block text-base font-medium mb-3 ${
                     pathname === item.href
                       ? "text-white font-semibold underline"
-
-                    : "text-gray-300"
-
+                      : "text-gray-300"
                   } hover:text-white hover:underline`}
                   onClick={() => setMenuOpen(false)}
                 >
@@ -373,11 +401,7 @@ export default function Navbar() {
           {/* Mobile Wallet */}
           <div className="border-t border-gray-700 pt-4">
             <div className="flex justify-center">
-              <ConnectButton
-                accountStatus="address"
-                chainStatus="icon"
-                showBalance={true}
-              />
+              <WalletConnectButton />
             </div>
           </div>
         </div>
@@ -385,9 +409,14 @@ export default function Navbar() {
 
       <div className="w-full overflow-hidden bg-gray-100/20 rounded-md py-1 text-center">
         <span className="mx-2 text-sm font-medium text-gray-300">
-          You can get the custon xfi token through the faucet with the link: {" "}
-          <Link href="https://xfi-faucet.vercel.app/" className="text-white">
-            https://xfi-faucet.vercel.app/
+          You can get Base Sepolia ETH through the faucet:{" "}
+          <Link
+            href="https://www.coinbase.com/faucets/base-ethereum-sepolia-faucet"
+            className="text-white"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Base Sepolia Faucet
           </Link>
         </span>
       </div>

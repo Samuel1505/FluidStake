@@ -7,7 +7,7 @@ import {
   stakingContractAddress,
   stakingContractAbi,
   sbFTTokenAddress,
-  xfiTokenAbi,
+  sbFTTokenAbi,
   sbFTMarketplaceAddress,
   sbFTMarketplaceAbi,
 } from "@/contractAddressAndABI";
@@ -49,7 +49,7 @@ export function useStakeAndBakeNFT() {
   // Read user's sbFT balance
   const { data: sbftBalance } = useReadContract({
     address: sbFTTokenAddress,
-    abi: xfiTokenAbi,
+    abi: sbFTTokenAbi,
     functionName: "balanceOf",
     args: [address],
     query: {
@@ -96,7 +96,7 @@ export function useStakeAndBakeNFT() {
   // Read sbFT total supply directly from token contract
   const { data: sbftTotalSupply } = useReadContract({
     address: sbFTTokenAddress,
-    abi: xfiTokenAbi,
+    abi: sbFTTokenAbi,
     functionName: "totalSupply",
     query: {
       enabled: Boolean(sbFTTokenAddress),
@@ -180,7 +180,7 @@ export function useStakeAndBakeNFT() {
               // totalValue,
               filled,
               timestamp;
-              // active;
+            // active;
 
             if (Array.isArray(orderData)) {
               // If it's an array, destructure it
@@ -258,7 +258,7 @@ export function useStakeAndBakeNFT() {
         setTransactions(validTransactions);
       } catch (error) {
         console.error("Error fetching order details:", error);
-        toast.error("Error fetching order details, kindly reload the page.")
+        toast.error("Error fetching order details, kindly reload the page.");
       } finally {
         setIsLoading(false);
       }
