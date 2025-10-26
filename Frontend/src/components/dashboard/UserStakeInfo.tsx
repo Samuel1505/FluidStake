@@ -78,8 +78,8 @@ export default function UserStakeInfo({
             <h3 className="text-lg font-medium text-gray-300 mb-3">Stake Overview</h3>
             <div className="space-y-2">
               <div className="flex justify-between">
-                <span className="text-gray-400">XFI Staked:</span>
-                <span className="text-white font-medium">{stakedAmount} XFI</span>
+                <span className="text-gray-400">ETH Staked:</span>
+                <span className="text-white font-medium">{stakedAmount} ETH</span>
               </div>
               <div className="flex justify-between">
                 <span className="text-gray-400">sbFT in Wallet:</span>
@@ -154,18 +154,18 @@ export default function UserStakeInfo({
             <h3 className="text-lg font-medium text-gray-300 mb-3">Rewards Information</h3>
             <div className="grid md:grid-cols-3 gap-4">
               <div className="text-center">
-                <div className="text-2xl font-bold text-green-400">{pendingRewards} XFI</div>
+                <div className="text-2xl font-bold text-green-400">{pendingRewards} ETH</div>
                 <div className="text-sm text-gray-400">Pending Rewards</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-blue-400">
-                  {(parseFloat(stakedAmount) * parseFloat(apy) / 100 / 12).toFixed(4)} XFI
+                  {(parseFloat(stakedAmount) * parseFloat(apy) / 100 / 12).toFixed(4)} ETH
                 </div>
                 <div className="text-sm text-gray-400">Monthly Estimate</div>
               </div>
               <div className="text-center">
                 <div className="text-2xl font-bold text-yellow-400">
-                  {(parseFloat(stakedAmount) * parseFloat(apy) / 100).toFixed(4)} XFI
+                  {(parseFloat(stakedAmount) * parseFloat(apy) / 100).toFixed(4)} ETH
                 </div>
                 <div className="text-sm text-gray-400">Yearly Estimate</div>
               </div>

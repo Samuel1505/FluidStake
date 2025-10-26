@@ -18,7 +18,7 @@ import {
   sbFTTokenAbi,
   sbFTTokenAddress,
 } from "@/contractAddressAndABI";
-import { Abi, formatEther, parseEther } from "viem";
+import { Abi, formatEther, parseEther, formatUnits } from "viem";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
 import {
   Clock,
@@ -498,6 +498,7 @@ function RequestUnstakeForm({ onUpdate }: RequestUnstakeFormProps) {
   };
 
   const maxBalance = sbftBalance ? sbftBalance.toString() : "0.00";
+  
 
   return (
     <div className="bg-gradient-to-br from-[#1A1A1A] to-[#2A2A2A] rounded-2xl p-8 border border-[#3F3F46] shadow-lg">

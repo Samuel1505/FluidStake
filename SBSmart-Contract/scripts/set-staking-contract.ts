@@ -14,7 +14,7 @@ async function main() {
   console.log("💰 Account balance:", ethers.utils.formatEther(balance), "ETH");
   
   // Contract addresses
-  const STAKING_CONTRACT_ADDRESS = "0xC211fD29767f83B8F09bD1FbEDe66Cd97Ac7A942";
+  const STAKING_CONTRACT_ADDRESS = "0x4f73E4cB8C765f45C3E0fe1c2a7fa03Bc0b4DAEd";
   const STAKEANDBAKE_NFT_ADDRESS = "0x453C50feeb756843fABcbb591F4BdB21d4e536Ec";
   const SBFT_TOKEN_ADDRESS = "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6";
   

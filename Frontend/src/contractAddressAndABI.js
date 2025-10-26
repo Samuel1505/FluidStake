@@ -2086,8 +2086,8 @@ export const stakeAndBakeNFTAbi = [
   }
 ];
 
-export const stakingContractAddress = "0xF9990CD567b62fB44CaF615d3f06355D21f54b0e";
-export const stakingContractAbi =  [
+export const stakingContractAddress = "0x4f73E4cB8C765f45C3E0fe1c2a7fa03Bc0b4DAEd";
+export const stakingContractAbi =   [
   {
     "inputs": [
       {
@@ -2916,13 +2916,7 @@ export const stakingContractAbi =  [
     "type": "function"
   },
   {
-    "inputs": [
-      {
-        "internalType": "uint256",
-        "name": "_amount",
-        "type": "uint256"
-      }
-    ],
+    "inputs": [],
     "name": "stake",
     "outputs": [],
     "stateMutability": "payable",

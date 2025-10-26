@@ -14,7 +14,7 @@ interface ISbFTToken {
 }
 
 interface IStakeAndBakeNFT {
-    function distributeFees(uint256 amount) external;
+    function distributeFees(uint256 amount) external payable;
 }
 
 /**
@@ -137,40 +137,38 @@ contract StakingContract is Ownable, ReentrancyGuard {
     /**
      * @dev Stake ETH to receive sbFT tokens at current exchange rate
      */
-    function stake(uint256 _amount) external payable nonReentrant {
-         require(_amount == msg.value, "Incorrect ETH amount sent");    
-        uint256 amount = msg.value;
-        require(amount >= minStake, "Amount below minimum stake");
-        
-        // Update rewards before staking
-        _accrueRewards();
-        
-        // Calculate fee and net amount
-        uint256 fee = (amount * STAKING_FEE) / BASIS_POINTS;
-        uint256 netAmount = amount - fee;
-        
-        // Calculate sbFT amount based on current exchange rate
-        uint256 exchangeRate = getExchangeRate();
-        uint256 sbftAmount = (netAmount * 1e18) / exchangeRate;
-        
-        // Update pool state
-        totalETHInPool += netAmount;
-        totalStaked = totalETHInPool; // For backwards compatibility
-        totalFeesCollected += fee;
-        
-        // Mint sbFT tokens to user
-        sbftToken.mint(msg.sender, sbftAmount);
-        
-        // Send fee to Master NFT contract (if set)
-        if (address(masterNFT) != address(0) && fee > 0) {
-            (bool success, ) = address(masterNFT).call{value: fee}("");
-            require(success, "Fee transfer failed");
-            masterNFT.distributeFees(fee);
-        }
-        
-        emit Staked(msg.sender, amount, sbftAmount, fee, exchangeRate);
-        emit FeeCollected(fee);
-    }
+    function stake() external payable nonReentrant {
+    uint256 amount = msg.value;
+    require(amount >= minStake, "Amount below minimum stake");
+    
+    // Update rewards before staking
+    _accrueRewards();
+    
+    // Calculate fee and net amount
+    uint256 fee = (amount * STAKING_FEE) / BASIS_POINTS;
+    uint256 netAmount = amount - fee;
+    
+    // Calculate sbFT amount based on current exchange rate
+    uint256 exchangeRate = getExchangeRate();
+    uint256 sbftAmount = (netAmount * 1e18) / exchangeRate;
+    
+    // Update pool state
+    totalETHInPool += netAmount;
+    totalStaked = totalETHInPool;
+    totalFeesCollected += fee;
+    
+    // Mint sbFT tokens to user
+    sbftToken.mint(msg.sender, sbftAmount);
+    
+    // Send fee to Master NFT contract (if set)
+   if (address(masterNFT) != address(0) && fee > 0) {
+    // ONE CALL: Send ETH and call the function simultaneously
+    masterNFT.distributeFees{value: fee}(fee); 
+}
+    
+    emit Staked(msg.sender, amount, sbftAmount, fee, exchangeRate);
+    emit FeeCollected(fee);
+}
     
     /**
      * @dev Request unstaking - creates unstake request with delay
