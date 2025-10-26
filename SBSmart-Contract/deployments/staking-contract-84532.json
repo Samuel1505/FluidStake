@@ -1,7 +1,7 @@
 {
   "network": "unknown",
   "chainId": 84532,
-  "contractAddress": "0xF9990CD567b62fB44CaF615d3f06355D21f54b0e",
+  "contractAddress": "0xC211fD29767f83B8F09bD1FbEDe66Cd97Ac7A942",
   "deployer": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
   "sbftTokenAddress": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6",
   "masterNFTAddress": "0x453C50feeb756843fABcbb591F4BdB21d4e536Ec",
@@ -10,8 +10,8 @@
   "minStake": "1000000000000000",
   "exchangeRate": "1000000000000000000",
   "owner": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
-  "deploymentTime": "2025-10-24T08:37:00.872Z",
-  "transactionHash": "0x448907365530c902a6e76c90b0b6396f9f2dfacf01602c9b96775725e6a39853",
+  "deploymentTime": "2025-10-25T00:20:38.120Z",
+  "transactionHash": "0x6ea80569b723b9aa79812e6037d1026c6c31913199311fb3ec9fc58ff8fc9786",
   "constructorArgs": {
     "sbftToken": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6"
   }

@@ -2916,7 +2916,13 @@ export const stakingContractAbi =  [
     "type": "function"
   },
   {
-    "inputs": [],
+    "inputs": [
+      {
+        "internalType": "uint256",
+        "name": "_amount",
+        "type": "uint256"
+      }
+    ],
     "name": "stake",
     "outputs": [],
     "stateMutability": "payable",
@@ -3145,7 +3151,7 @@ export const stakingContractAbi =  [
     "stateMutability": "payable",
     "type": "receive"
   }
-];
+]
 
 export const sbFTMarketplaceAddress = "0xF3eceC1D96FB5de8efAF9EE6A48f6d365Cf20597";
 export const sbFTMarketplaceAbi = [

@@ -137,7 +137,8 @@ contract StakingContract is Ownable, ReentrancyGuard {
     /**
      * @dev Stake ETH to receive sbFT tokens at current exchange rate
      */
-    function stake() external payable nonReentrant {
+    function stake(uint256 _amount) external payable nonReentrant {
+         require(_amount == msg.value, "Incorrect ETH amount sent");    
         uint256 amount = msg.value;
         require(amount >= minStake, "Amount below minimum stake");
         
