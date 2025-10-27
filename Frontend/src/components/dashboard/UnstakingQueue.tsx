@@ -286,9 +286,8 @@ interface UnstakeRequestListProps {
 }
 
 function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const contractsToRead =
-    requestIds?.map((id: any) => ({
+    requestIds?.map((id: string | number | bigint) => ({
       address: stakingContractAddress as `0x${string}`,
       abi: stakingContractAbi as Abi,
       functionName: "unstakeRequests",
