@@ -14,9 +14,8 @@ async function main() {
   console.log("💰 Account balance:", ethers.utils.formatEther(balance), "XFI");
   
   // ⚠️ IMPORTANT: Replace these addresses with your actual deployed contract addresses
-  const XFI_TOKEN_ADDRESS = "0xF321b818669d56C8f11b3617429cD987c745B0D2"; // Your XFI token address
-  const SBFT_TOKEN_ADDRESS = "0x9c020d7AF67aB9B77488E9554bC09dDBB2348535"; // ⚠️ SET THIS TO YOUR NEW sbFT TOKEN ADDRESS AFTER DEPLOYING IT
-  const MASTER_NFT_ADDRESS = "0x9F69a019DC9F4a4A30a255B572E7F425a7814637"; // Your existing Master NFT address
+  const SBFT_TOKEN_ADDRESS = "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6"; // ⚠️ SET THIS TO YOUR NEW sbFT TOKEN ADDRESS AFTER DEPLOYING IT
+  const MASTER_NFT_ADDRESS = "0x453C50feeb756843fABcbb591F4BdB21d4e536Ec"; // Your existing Master NFT address
   
   // Validation
   if (!SBFT_TOKEN_ADDRESS) {
@@ -26,7 +25,6 @@ async function main() {
   }
   
   console.log("\n📋 Staking Contract Configuration:");
-  console.log(`   XFI Token: ${XFI_TOKEN_ADDRESS}`);
   console.log(`   sbFT Token: ${SBFT_TOKEN_ADDRESS}`);
   console.log(`   Master NFT: ${MASTER_NFT_ADDRESS || "Not set (can be set later)"}`);
   
@@ -35,7 +33,6 @@ async function main() {
   const StakingContractFactory = await ethers.getContractFactory("StakingContract");
   
   const stakingContract = await StakingContractFactory.deploy(
-    XFI_TOKEN_ADDRESS,
     SBFT_TOKEN_ADDRESS
   ) as StakingContract;
   
@@ -44,6 +41,11 @@ async function main() {
   
   const stakingContractAddress = stakingContract.address;
   console.log(`✅ StakingContract deployed to: ${stakingContractAddress}`);
+  
+  // Wait for additional confirmations before verification
+  console.log("\n⏳ Waiting for block confirmations...");
+  await stakingContract.deployTransaction.wait(5); // Wait for 5 confirmations
+  console.log("✅ Confirmations received");
   
   // Set Master NFT if provided
   if (MASTER_NFT_ADDRESS && MASTER_NFT_ADDRESS !== "0x0000000000000000000000000000000000000000") {
@@ -101,7 +103,6 @@ async function main() {
   
   // Verify deployment
   console.log("\n🔍 Verifying staking contract deployment...");
-  const xfiToken = await stakingContract.xfiToken();
   const sbftToken = await stakingContract.sbftToken();
   const masterNFT = await stakingContract.masterNFT();
   const unstakingDelay = await stakingContract.unstakingDelay();
@@ -111,7 +112,6 @@ async function main() {
   const exchangeRate = await stakingContract.getExchangeRate();
   
   console.log("📊 Contract Details:");
-  console.log(`   XFI Token: ${xfiToken}`);
   console.log(`   sbFT Token: ${sbftToken}`);
   console.log(`   Master NFT: ${masterNFT}`);
   console.log(`   Unstaking Delay: ${unstakingDelay.toString()} seconds (${unstakingDelay.toNumber() / 86400} days)`);
@@ -128,7 +128,7 @@ async function main() {
   
   // Get additional liquid staking info
   const totalPendingUnstakes = await stakingContract.totalPendingUnstakes();
-  const availableXFI = await stakingContract.getAvailableXFI();
+  const availableXFI = await stakingContract.getAvailableETH();
   console.log(`   Total Pending Unstakes: ${ethers.utils.formatEther(totalPendingUnstakes)} XFI`);
   console.log(`   Available XFI for Unstaking: ${ethers.utils.formatEther(availableXFI)} XFI`);
   
@@ -139,7 +139,6 @@ async function main() {
     chainId: network.chainId,
     contractAddress: stakingContractAddress,
     deployer: deployer.address,
-    xfiTokenAddress: xfiToken,
     sbftTokenAddress: sbftToken,
     masterNFTAddress: masterNFT,
     unstakingDelay: unstakingDelay.toString(),
@@ -148,7 +147,10 @@ async function main() {
     exchangeRate: exchangeRate.toString(),
     owner: owner,
     deploymentTime: new Date().toISOString(),
-    transactionHash: stakingContract.deployTransaction.hash
+    transactionHash: stakingContract.deployTransaction.hash,
+    constructorArgs: {
+      sbftToken: SBFT_TOKEN_ADDRESS
+    }
   };
   
   console.log("\n📋 Deployment Summary:");
@@ -156,7 +158,6 @@ async function main() {
   console.log(`Network: ${deploymentInfo.network} (Chain ID: ${deploymentInfo.chainId})`);
   console.log(`Staking Contract: ${deploymentInfo.contractAddress}`);
   console.log(`Deployer: ${deploymentInfo.deployer}`);
-  console.log(`XFI Token: ${deploymentInfo.xfiTokenAddress}`);
   console.log(`sbFT Token: ${deploymentInfo.sbftTokenAddress}`);
   console.log(`Master NFT: ${deploymentInfo.masterNFTAddress}`);
   console.log(`Unstaking Delay: ${parseInt(deploymentInfo.unstakingDelay) / 86400} days`);
@@ -181,6 +182,27 @@ async function main() {
   fs.writeFileSync(deploymentFile, JSON.stringify(deploymentInfo, null, 2));
   console.log(`📁 Deployment info saved to: ${deploymentFile}`);
   
+  // Verify contract on block explorer
+  console.log("\n🔍 Starting contract verification...");
+  try {
+    const hre = require("hardhat");
+    
+    await hre.run("verify:verify", {
+      address: stakingContractAddress,
+      constructorArguments: [SBFT_TOKEN_ADDRESS],
+    });
+    
+    console.log("✅ Contract verified successfully!");
+  } catch (error: any) {
+    if (error.message.toLowerCase().includes("already verified")) {
+      console.log("ℹ️  Contract is already verified");
+    } else {
+      console.error("❌ Verification failed:", error.message);
+      console.log("\n💡 You can verify manually later using:");
+      console.log(`npx hardhat verify --network <network-name> ${stakingContractAddress} "${SBFT_TOKEN_ADDRESS}"`);
+    }
+  }
+  
   console.log("\n🎉 StakingContract deployment completed successfully!");
   console.log("\n💡 Next steps:");
   console.log("1. Test staking with small amounts");
@@ -192,7 +214,6 @@ async function main() {
   console.log("Your fresh staking system is now deployed and configured:");
   console.log(`   🏦 Staking Contract: ${stakingContractAddress}`);
   console.log(`   🪙 sbFT Token: ${SBFT_TOKEN_ADDRESS}`);
-  console.log(`   💰 XFI Token: ${XFI_TOKEN_ADDRESS}`);
   console.log(`   🎨 Master NFT: ${MASTER_NFT_ADDRESS}`);
   
   return {
@@ -206,6 +227,7 @@ async function main() {
 main()
   .then((result) => {
     console.log("\n✅ Script completed successfully!");
+    console.log(`📄 StakingContract Address: ${result.address}`);
     process.exit(0);
   })
   .catch((error) => {

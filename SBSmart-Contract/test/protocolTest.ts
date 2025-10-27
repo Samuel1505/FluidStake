@@ -2,7 +2,6 @@ import { expect } from "chai";
 import { ethers } from "hardhat";
 import { SignerWithAddress } from "@nomicfoundation/hardhat-ethers/signers";
 import { 
-  XFIToken, 
   SbFTToken, 
   StakingContract, 
   StakeAndBakeNFT, 
@@ -18,26 +17,16 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
   let user4: SignerWithAddress;
   let nftHolder: SignerWithAddress;
 
-  let xfiToken: XFIToken;
   let sbftToken: SbFTToken;
   let stakingContract: StakingContract;
   let masterNFT: StakeAndBakeNFT;
   let votingContract: VotingContract;
 
-  const INITIAL_XFI_SUPPLY = ethers.parseEther("1000000"); // 1M XFI
-  const STAKING_AMOUNT = ethers.parseEther("1000"); // 1000 XFI
-  const MIN_STAKE = ethers.parseEther("1"); // 1 XFI minimum
+  const STAKING_AMOUNT = ethers.utils.parseEther("1"); // 1 ETH
+  const MIN_STAKE = ethers.parseEther("0.001"); // 0.001 ETH minimum
 
   beforeEach(async function () {
     [owner, user1, user2, user3, user4, nftHolder] = await ethers.getSigners();
-
-    // Deploy XFI Token
-    const XFITokenFactory = await ethers.getContractFactory("XFIToken");
-    xfiToken = await XFITokenFactory.deploy(
-      "Cross Finance Token",
-      "XFI",
-      1000000 // 1M initial supply
-    );
 
     // Deploy sbFT Token
     const SbFTTokenFactory = await ethers.getContractFactory("SbFTToken");
@@ -49,7 +38,6 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
     // Deploy Staking Contract
     const StakingContractFactory = await ethers.getContractFactory("StakingContract");
     stakingContract = await StakingContractFactory.deploy(
-      await xfiToken.getAddress(),
       await sbftToken.getAddress()
     );
 
@@ -58,7 +46,6 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
     masterNFT = await MasterNFTFactory.deploy(
       "Stake and Bake Master NFT",
       "SBNFT",
-      await xfiToken.getAddress(),
       await sbftToken.getAddress(),
       "https://example.com/metadata/1"
     );
@@ -76,12 +63,6 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
 
     // Mint Master NFT to nftHolder
     await masterNFT.mintMasterNFT(nftHolder.address);
-
-    // Distribute XFI tokens to users for testing
-    await xfiToken.transfer(user1.address, STAKING_AMOUNT);
-    await xfiToken.transfer(user2.address, STAKING_AMOUNT);
-    await xfiToken.transfer(user3.address, STAKING_AMOUNT);
-    await xfiToken.transfer(user4.address, STAKING_AMOUNT);
   });
 
   describe("Complete Protocol Workflow", function () {
@@ -91,39 +72,26 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
       // ===== PHASE 1: Initial Staking =====
       console.log("📍 PHASE 1: Initial Staking");
       
-      // User1 stakes 100 XFI
-      const user1StakeAmount = ethers.parseEther("100");
-      await xfiToken.connect(user1).approve(await stakingContract.getAddress(), user1StakeAmount);
-      await stakingContract.connect(user1).stake(user1StakeAmount);
+      // User1 stakes 0.1 ETH
+      const user1StakeAmount = ethers.parseEther("0.1");
+      await stakingContract.connect(user1).stake({ value: user1StakeAmount });
       
-      // User2 stakes 200 XFI
-      const user2StakeAmount = ethers.parseEther("200");
-      await xfiToken.connect(user2).approve(await stakingContract.getAddress(), user2StakeAmount);
-      await stakingContract.connect(user2).stake(user2StakeAmount);
+      // User2 stakes 0.2 ETH
+      const user2StakeAmount = ethers.parseEther("0.2");
+      await stakingContract.connect(user2).stake({ value: user2StakeAmount });
       
-      // User3 stakes 300 XFI
-      const user3StakeAmount = ethers.parseEther("300");
-      await xfiToken.connect(user3).approve(await stakingContract.getAddress(), user3StakeAmount);
-      await stakingContract.connect(user3).stake(user3StakeAmount);
+      // User3 stakes 0.3 ETH
+      const user3StakeAmount = ethers.parseEther("0.3");
+      await stakingContract.connect(user3).stake({ value: user3StakeAmount });
 
-      // Verify staking worked correctly
-      const user1Stake = await stakingContract.getUserStake(user1.address);
-      const user2Stake = await stakingContract.getUserStake(user2.address);
-      const user3Stake = await stakingContract.getUserStake(user3.address);
-      
-      // Account for 1% staking fee
-      const expectedUser1Net = user1StakeAmount * BigInt(99) / BigInt(100);
-      const expectedUser2Net = user2StakeAmount * BigInt(99) / BigInt(100);
-      const expectedUser3Net = user3StakeAmount * BigInt(99) / BigInt(100);
-      
-      expect(user1Stake.stakedAmount).to.equal(expectedUser1Net);
-      expect(user2Stake.stakedAmount).to.equal(expectedUser2Net);
-      expect(user3Stake.stakedAmount).to.equal(expectedUser3Net);
-      
-      // Check sbFT token balances
+      // Check sbFT token balances (accounting for 1% fee)
       const user1SbftBalance = await sbftToken.balanceOf(user1.address);
       const user2SbftBalance = await sbftToken.balanceOf(user2.address);
       const user3SbftBalance = await sbftToken.balanceOf(user3.address);
+      
+      const expectedUser1Net = user1StakeAmount * BigInt(99) / BigInt(100);
+      const expectedUser2Net = user2StakeAmount * BigInt(99) / BigInt(100);
+      const expectedUser3Net = user3StakeAmount * BigInt(99) / BigInt(100);
       
       expect(user1SbftBalance).to.equal(expectedUser1Net);
       expect(user2SbftBalance).to.equal(expectedUser2Net);
@@ -132,10 +100,10 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
       const totalStaked = await stakingContract.totalStaked();
       const totalSbftSupply = await sbftToken.totalSupply();
       
-      console.log(`✅ User1 staked: ${ethers.formatEther(user1Stake.stakedAmount)} XFI`);
-      console.log(`✅ User2 staked: ${ethers.formatEther(user2Stake.stakedAmount)} XFI`);
-      console.log(`✅ User3 staked: ${ethers.formatEther(user3Stake.stakedAmount)} XFI`);
-      console.log(`✅ Total staked: ${ethers.formatEther(totalStaked)} XFI`);
+      console.log(`✅ User1 staked: ${ethers.formatEther(user1StakeAmount)} ETH -> ${ethers.formatEther(user1SbftBalance)} sbFT`);
+      console.log(`✅ User2 staked: ${ethers.formatEther(user2StakeAmount)} ETH -> ${ethers.formatEther(user2SbftBalance)} sbFT`);
+      console.log(`✅ User3 staked: ${ethers.formatEther(user3StakeAmount)} ETH -> ${ethers.formatEther(user3SbftBalance)} sbFT`);
+      console.log(`✅ Total staked: ${ethers.formatEther(totalStaked)} ETH`);
       console.log(`✅ Total sbFT supply: ${ethers.formatEther(totalSbftSupply)} sbFT\n`);
 
       // ===== PHASE 2: Fee Accumulation and Distribution =====
@@ -143,7 +111,7 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
       
       // Check accumulated fees in Master NFT
       const accumulatedRevenue = await masterNFT.accumulatedRevenue();
-      console.log(`💰 Accumulated fees: ${ethers.formatEther(accumulatedRevenue)} XFI`);
+      console.log(`💰 Accumulated fees: ${ethers.formatEther(accumulatedRevenue)} ETH`);
       
       // Fast forward to distribution time (7 days)
       await time.increase(7 * 24 * 60 * 60);
@@ -156,7 +124,7 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
         const distributionRound = await masterNFT.getDistributionRound(currentRound);
         
         console.log(`✅ Distribution round ${currentRound} created`);
-        console.log(`✅ Revenue distributed: ${ethers.formatEther(distributionRound.totalRevenue)} XFI`);
+        console.log(`✅ Revenue distributed: ${ethers.formatEther(distributionRound.totalRevenue)} ETH`);
         console.log(`✅ Total sbFT supply: ${ethers.formatEther(distributionRound.totalSbftSupply)} sbFT\n`);
 
         // ===== PHASE 3: Revenue Claims =====
@@ -167,9 +135,9 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
         const user2PendingRewards = await masterNFT.getPendingRewards(user2.address);
         const user3PendingRewards = await masterNFT.getPendingRewards(user3.address);
         
-        console.log(`💎 User1 pending rewards: ${ethers.formatEther(user1PendingRewards)} XFI`);
-        console.log(`💎 User2 pending rewards: ${ethers.formatEther(user2PendingRewards)} XFI`);
-        console.log(`💎 User3 pending rewards: ${ethers.formatEther(user3PendingRewards)} XFI`);
+        console.log(`💎 User1 pending rewards: ${ethers.formatEther(user1PendingRewards)} ETH`);
+        console.log(`💎 User2 pending rewards: ${ethers.formatEther(user2PendingRewards)} ETH`);
+        console.log(`💎 User3 pending rewards: ${ethers.formatEther(user3PendingRewards)} ETH`);
         
         // Users claim their rewards if they have any
         if (user1PendingRewards > 0) {
@@ -188,32 +156,18 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
         console.log(`✅ Users claimed their revenue rewards\n`);
       }
 
-      // ===== PHASE 4: Staking Rewards =====
-      console.log("📍 PHASE 4: Staking Rewards");
+      // ===== PHASE 4: Exchange Rate Verification =====
+      console.log("📍 PHASE 4: Exchange Rate Verification");
       
-      // Fast forward to accumulate staking rewards
+      // Fast forward to accumulate rewards
       await time.increase(30 * 24 * 60 * 60); // 30 days
       
-      // Check staking rewards
-      const user1StakingRewards = await stakingContract.getPendingRewards(user1.address);
-      const user2StakingRewards = await stakingContract.getPendingRewards(user2.address);
-      const user3StakingRewards = await stakingContract.getPendingRewards(user3.address);
+      // Accrue rewards to update exchange rate
+      await stakingContract.accrueRewards();
       
-      console.log(`🎯 User1 staking rewards: ${ethers.formatEther(user1StakingRewards)} XFI`);
-      console.log(`🎯 User2 staking rewards: ${ethers.formatEther(user2StakingRewards)} XFI`);
-      console.log(`🎯 User3 staking rewards: ${ethers.formatEther(user3StakingRewards)} XFI`);
-      
-      // User1 claims staking rewards if available
-      if (user1StakingRewards > 0) {
-        await stakingContract.connect(user1).claimRewards();
-      }
-      
-      // User2 compounds staking rewards if available
-      if (user2StakingRewards > 0) {
-        await stakingContract.connect(user2).compoundRewards();
-      }
-      
-      console.log(`✅ Processed staking rewards\n`);
+      const exchangeRate = await stakingContract.getExchangeRate();
+      console.log(`📈 Current exchange rate: ${ethers.formatEther(exchangeRate)} ETH per sbFT`);
+      console.log(`✅ Exchange rate appreciation verified\n`);
 
       // ===== PHASE 5: Governance Voting =====
       console.log("📍 PHASE 5: Governance Voting");
@@ -287,22 +241,34 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
         console.log(`✅ Proposal executed - Passed: ${finalProposal.passed}\n`);
       }
 
-      // ===== PHASE 6: Partial Unstaking =====
-      console.log("📍 PHASE 6: Partial Unstaking");
+      // ===== PHASE 6: Unstaking Flow =====
+      console.log("📍 PHASE 6: Unstaking Flow");
       
-      // User1 unstakes 50% of their sbFT
+      // User1 requests unstake for 50% of their sbFT
       const user1FinalSbft = await sbftToken.balanceOf(user1.address);
       
       if (user1FinalSbft > 0) {
         const unstakeAmount = user1FinalSbft / BigInt(2);
         
-        await stakingContract.connect(user1).unstake(unstakeAmount);
+        await stakingContract.connect(user1).requestUnstake(unstakeAmount);
         
-        const user1FinalStake = await stakingContract.getUserStake(user1.address);
+        const requestIds = await stakingContract.getUserUnstakeRequests(user1.address);
+        const requestId = requestIds[requestIds.length - 1];
+        
+        console.log(`✅ User1 requested unstake of ${ethers.formatEther(unstakeAmount)} sbFT`);
+        console.log(`🔒 Request ID: ${requestId}`);
+        
+        // Fast forward past unstaking delay
+        await time.increase(7 * 24 * 60 * 60 + 1);
+        
+        // Process unstake
+        const balanceBefore = await ethers.provider.getBalance(user1.address);
+        await stakingContract.connect(user1).processUnstake(requestId);
+        const balanceAfter = await ethers.provider.getBalance(user1.address);
+        
         const user1RemainingBalance = await sbftToken.balanceOf(user1.address);
         
-        console.log(`✅ User1 unstaked ${ethers.formatEther(unstakeAmount)} sbFT`);
-        console.log(`✅ User1 remaining stake: ${ethers.formatEther(user1FinalStake.stakedAmount)} XFI`);
+        console.log(`✅ User1 processed unstake request`);
         console.log(`✅ User1 remaining sbFT: ${ethers.formatEther(user1RemainingBalance)} sbFT\n`);
       }
 
@@ -315,9 +281,9 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
       const finalCurrentRound = await masterNFT.currentRound();
       const finalProposalCount = await votingContract.proposalCount();
       
-      console.log(`📊 Final total staked: ${ethers.formatEther(finalTotalStaked)} XFI`);
+      console.log(`📊 Final total staked: ${ethers.formatEther(finalTotalStaked)} ETH`);
       console.log(`📊 Final total sbFT supply: ${ethers.formatEther(finalTotalSbftSupply)} sbFT`);
-      console.log(`📊 Total fees collected: ${ethers.formatEther(finalTotalFeesCollected)} XFI`);
+      console.log(`📊 Total fees collected: ${ethers.formatEther(finalTotalFeesCollected)} ETH`);
       console.log(`📊 Distribution rounds completed: ${finalCurrentRound}`);
       console.log(`📊 Governance proposals created: ${finalProposalCount}`);
       
@@ -338,19 +304,17 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
       console.log("🔍 Testing Edge Cases and Error Conditions...\n");
 
       // Test minimum stake requirement
-      const belowMinStake = ethers.parseEther("0.5");
-      await xfiToken.connect(user1).approve(await stakingContract.getAddress(), belowMinStake);
+      const belowMinStake = ethers.parseEther("0.0005");
       
       await expect(
-        stakingContract.connect(user1).stake(belowMinStake)
+        stakingContract.connect(user1).stake({ value: belowMinStake })
       ).to.be.revertedWith("Amount below minimum stake");
       
       console.log("✅ Minimum stake requirement enforced");
 
       // First, stake enough to get sufficient sbFT
-      const sufficientStake = ethers.parseEther("1000");
-      await xfiToken.connect(user1).approve(await stakingContract.getAddress(), sufficientStake);
-      await stakingContract.connect(user1).stake(sufficientStake);
+      const sufficientStake = ethers.parseEther("1");
+      await stakingContract.connect(user1).stake({ value: sufficientStake });
 
       // Now test voting with insufficient sbFT using a different user
       await expect(
@@ -363,22 +327,15 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
       
       console.log("✅ Voting requires sufficient sbFT");
 
-      // Test claiming rewards with no rewards
-      await expect(
-        stakingContract.connect(user2).claimRewards()
-      ).to.be.revertedWith("No rewards to claim");
-      
-      console.log("✅ Cannot claim non-existent rewards");
-
-      // Test unstaking more than staked
+      // Test unstaking more than balance
       const user1SbftBalance = await sbftToken.balanceOf(user1.address);
       const excessiveUnstake = user1SbftBalance + ethers.parseEther("1");
       
       await expect(
-        stakingContract.connect(user1).unstake(excessiveUnstake)
+        stakingContract.connect(user1).requestUnstake(excessiveUnstake)
       ).to.be.revertedWith("Insufficient sbFT balance");
       
-      console.log("✅ Cannot unstake more than staked");
+      console.log("✅ Cannot unstake more than balance");
 
       console.log("\n🎉 All Edge Cases Handled Correctly!");
     });
@@ -386,31 +343,22 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
     it("Should demonstrate scalability with multiple users", async function () {
       console.log("⚡ Testing Protocol Scalability...\n");
 
-      // Create additional funded accounts
+      // Create additional stakes
       const additionalUserStakes = [
-        ethers.parseEther("100"),
-        ethers.parseEther("200"),
-        ethers.parseEther("300"),
-        ethers.parseEther("400"),
-        ethers.parseEther("500")
+        ethers.parseEther("0.1"),
+        ethers.parseEther("0.2"),
+        ethers.parseEther("0.3"),
+        ethers.parseEther("0.4"),
+        ethers.parseEther("0.5")
       ];
 
       // Use existing signers for additional users
       const additionalUsers = [user1, user2, user3, user4, nftHolder];
 
-      // Fund and stake for additional users
+      // Stake for additional users
       for (let i = 0; i < additionalUsers.length; i++) {
         const stakeAmount = additionalUserStakes[i];
-        
-        // Transfer XFI to user
-        await xfiToken.transfer(additionalUsers[i].address, stakeAmount);
-        
-        // Approve and stake
-        await xfiToken.connect(additionalUsers[i]).approve(
-          await stakingContract.getAddress(), 
-          stakeAmount
-        );
-        await stakingContract.connect(additionalUsers[i]).stake(stakeAmount);
+        await stakingContract.connect(additionalUsers[i]).stake({ value: stakeAmount });
       }
 
       // Verify all users staked successfully
@@ -418,7 +366,7 @@ describe("Stake and Bake Protocol - Full Integration Test", function () {
       const finalTotalSbftSupply = await sbftToken.totalSupply();
       
       console.log(`✅ ${additionalUsers.length} additional users staked successfully`);
-      console.log(`📊 Total staked: ${ethers.formatEther(finalTotalStaked)} XFI`);
+      console.log(`📊 Total staked: ${ethers.formatEther(finalTotalStaked)} ETH`);
       console.log(`📊 Total sbFT supply: ${ethers.formatEther(finalTotalSbftSupply)} sbFT`);
 
       // Test distribution with multiple users

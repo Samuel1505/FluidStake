@@ -16,16 +16,23 @@ import DebugUnstaking from "@/components/DebugUnstaking";
 import {
   stakingContractAddress,
   stakingContractAbi,
-  xfiTokenAbi,
-  xfiTokenAddress,
+  sbFTTokenAbi,
   sbFTTokenAddress,
 } from "@/contractAddressAndABI";
 import { Abi, formatEther } from "viem";
 import { useTransactionHistory } from "@/hooks/useTransactionHistory";
-import { Clock, ArrowRight, X, Loader2, AlertCircle, CheckCircle } from "lucide-react";
+import {
+  Clock,
+  ArrowRight,
+  X,
+  Loader2,
+  AlertCircle,
+  CheckCircle,
+} from "lucide-react";
 
 function formatBalance(balance: number | string, decimals = 4) {
-  const num = typeof balance === "string" ? parseFloat(balance) : Number(balance);
+  const num =
+    typeof balance === "string" ? parseFloat(balance) : Number(balance);
   if (isNaN(num) || num === 0) return "0.00";
   if (num < 0.01) return "< 0.01";
   if (num >= 1000000) return `${(num / 1000000).toFixed(2)}M`;
@@ -33,7 +40,10 @@ function formatBalance(balance: number | string, decimals = 4) {
   return num.toFixed(decimals);
 }
 
-function safeBigIntToString(value: string | number | bigint, fallback = "0.00") {
+function safeBigIntToString(
+  value: string | number | bigint,
+  fallback = "0.00"
+) {
   try {
     if (!value) return fallback;
     if (typeof value === "bigint") {
@@ -54,7 +64,10 @@ interface UnstakeRequestCardProps {
   requestId: string | number | bigint;
 }
 
-function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps) {
+function UnstakeRequestCard({
+  requestData,
+  requestId,
+}: UnstakeRequestCardProps) {
   const { address } = useAccount();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isProcessing, setIsProcessing] = useState(false);
@@ -74,8 +87,10 @@ function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps)
     },
   });
 
-  const { writeContract: processUnstakeContract, data: hashProcess } = useWriteContract();
-  const { writeContract: cancelUnstakeContract, data: hashCancel } = useWriteContract();
+  const { writeContract: processUnstakeContract, data: hashProcess } =
+    useWriteContract();
+  const { writeContract: cancelUnstakeContract, data: hashCancel } =
+    useWriteContract();
 
   const {
     // isLoading: isProcessingTx,
@@ -126,12 +141,13 @@ function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps)
   // FIXED: Better handling of unlock time
   const unlockTime = requestData.unlockTime;
   let unlockDate;
-  
+
   try {
     // Handle both BigInt and number types
-    const timeValue = typeof unlockTime === 'bigint' ? Number(unlockTime) : Number(unlockTime);
+    const timeValue =
+      typeof unlockTime === "bigint" ? Number(unlockTime) : Number(unlockTime);
     unlockDate = new Date(timeValue * 1000);
-    
+
     // Validate the date
     if (isNaN(unlockDate.getTime())) {
       throw new Error("Invalid date");
@@ -149,13 +165,17 @@ function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps)
     return `${d}d ${h}h ${m}m ${s}s`;
   };
 
-  const canProcessNow = canProcessData && Array.isArray(canProcessData) ? canProcessData[0] : false;
-  const timeRemaining = canProcessData && Array.isArray(canProcessData) ? Number(canProcessData[1]) : 0;
+  const canProcessNow =
+    canProcessData && Array.isArray(canProcessData) ? canProcessData[0] : false;
+  const timeRemaining =
+    canProcessData && Array.isArray(canProcessData)
+      ? Number(canProcessData[1])
+      : 0;
 
   // FIXED: Better handling of XFI amount
   const xfiAmount = requestData.xfiAmount;
   let formattedAmount;
-  
+
   try {
     formattedAmount = safeBigIntToString(xfiAmount);
   } catch (error) {
@@ -166,16 +186,17 @@ function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps)
   return (
     <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3F3F46] flex flex-col sm:flex-row justify-between items-start sm:items-center">
       <div>
-        <p className="text-sm text-gray-400">Request ID: {requestId.toString()}</p>
-        <p className="text-xl font-bold text-white">
-          {formattedAmount} XFI
+        <p className="text-sm text-gray-400">
+          Request ID: {requestId.toString()}
         </p>
+        <p className="text-xl font-bold text-white">{formattedAmount} XFI</p>
         <p className="text-sm text-gray-400">
           Unlocks: {unlockDate.toLocaleString()}
         </p>
         {/* DEBUG INFO */}
         <p className="text-xs text-gray-500 mt-1">
-          Debug: unlockTime={unlockTime?.toString()}, amount={xfiAmount?.toString()}
+          Debug: unlockTime={unlockTime?.toString()}, amount=
+          {xfiAmount?.toString()}
         </p>
       </div>
 
@@ -191,7 +212,11 @@ function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps)
               className="mt-2 w-full sm:w-auto px-6 py-2 rounded-lg bg-green-500 text-white font-bold hover:bg-green-600 transition-colors duration-200 disabled:opacity-50"
               disabled={isProcessing}
             >
-              {isProcessing ? <Loader2 className="animate-spin" /> : "Claim XFI"}
+              {isProcessing ? (
+                <Loader2 className="animate-spin" />
+              ) : (
+                "Claim XFI"
+              )}
             </button>
           </>
         ) : (
@@ -218,13 +243,16 @@ function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps)
         <div className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center p-4 z-50">
           <div className="bg-[#1A1A1A] rounded-lg p-6 w-full max-w-md border border-[#3F3F46]">
             <div className="flex justify-between items-center mb-4">
-              <h3 className="text-xl font-bold text-white">Confirm Cancellation</h3>
+              <h3 className="text-xl font-bold text-white">
+                Confirm Cancellation
+              </h3>
               <button onClick={() => setIsModalOpen(false)}>
                 <X className="h-6 w-6 text-gray-400 hover:text-white" />
               </button>
             </div>
             <p className="text-gray-300 mb-4">
-              Are you sure you want to cancel this unstake request? Your sbFT tokens will be minted back to your wallet.
+              Are you sure you want to cancel this unstake request? Your sbFT
+              tokens will be minted back to your wallet.
             </p>
             <div className="flex justify-end space-x-4">
               <button
@@ -239,7 +267,11 @@ function UnstakeRequestCard({ requestData, requestId }: UnstakeRequestCardProps)
                 className="px-4 py-2 rounded-lg bg-red-500 text-white font-bold hover:bg-red-600 disabled:opacity-50"
                 disabled={isCancelling}
               >
-                {isCancelling ? <Loader2 className="animate-spin" /> : "Confirm Cancel"}
+                {isCancelling ? (
+                  <Loader2 className="animate-spin" />
+                ) : (
+                  "Confirm Cancel"
+                )}
               </button>
             </div>
           </div>
@@ -255,18 +287,23 @@ interface UnstakeRequestListProps {
 
 function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const contractsToRead = requestIds?.map((id: any) => ({
-    address: stakingContractAddress as `0x${string}`,
-    abi: stakingContractAbi as Abi,
-    functionName: 'unstakeRequests',
-    args: [id],
-  })) ?? [];
+  const contractsToRead =
+    requestIds?.map((id: any) => ({
+      address: stakingContractAddress as `0x${string}`,
+      abi: stakingContractAbi as Abi,
+      functionName: "unstakeRequests",
+      args: [id],
+    })) ?? [];
 
-  const { data: requestDetails, isLoading, error } = useReadContracts({
+  const {
+    data: requestDetails,
+    isLoading,
+    error,
+  } = useReadContracts({
     contracts: contractsToRead,
     query: { enabled: contractsToRead.length > 0 },
   });
-  
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center p-8 text-gray-400">
@@ -291,35 +328,41 @@ function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
   console.log("requestDetails:", requestDetails);
 
   // FIXED: Better filtering and mapping logic
-  const processedRequests = requestDetails
-    ?.map((result, index) => {
-      console.log(`Processing result ${index}:`, result);
-      
-      // Check if the result is successful and has data
-      if (result.status === "success" && result.result) {
-        const [user, xfiAmount, unlockTime, processed] = result.result as [string, bigint, bigint, boolean];
-        
-        console.log(`Request ${index} details:`, {
-          user,
-          xfiAmount: xfiAmount?.toString(),
-          unlockTime: unlockTime?.toString(),
-          processed
-        });
-        
-        // Only include unprocessed requests
-        if (!processed) {
-          return {
-            id: requestIds[index],
+  const processedRequests =
+    requestDetails
+      ?.map((result, index) => {
+        console.log(`Processing result ${index}:`, result);
+
+        // Check if the result is successful and has data
+        if (result.status === "success" && result.result) {
+          const [user, xfiAmount, unlockTime, processed] = result.result as [
+            string,
+            bigint,
+            bigint,
+            boolean
+          ];
+
+          console.log(`Request ${index} details:`, {
             user,
-            xfiAmount,
-            unlockTime,
-            processed
-          };
+            xfiAmount: xfiAmount?.toString(),
+            unlockTime: unlockTime?.toString(),
+            processed,
+          });
+
+          // Only include unprocessed requests
+          if (!processed) {
+            return {
+              id: requestIds[index],
+              user,
+              xfiAmount,
+              unlockTime,
+              processed,
+            };
+          }
         }
-      }
-      return null;
-    })
-    .filter(request => request !== null) || [];
+        return null;
+      })
+      .filter((request) => request !== null) || [];
 
   console.log("Processed requests:", processedRequests);
 
@@ -328,7 +371,8 @@ function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
       <div className="text-center p-8 text-gray-400">
         <p>No active unstake requests found.</p>
         <p className="text-sm mt-2">
-          Raw data: {requestIds?.length || 0} request IDs, {requestDetails?.length || 0} results
+          Raw data: {requestIds?.length || 0} request IDs,{" "}
+          {requestDetails?.length || 0} results
         </p>
       </div>
     );
@@ -337,10 +381,10 @@ function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
   return (
     <div className="space-y-4">
       {processedRequests.map((request) => (
-        <UnstakeRequestCard 
-          key={request.id.toString()} 
-          requestId={request.id} 
-          requestData={request} 
+        <UnstakeRequestCard
+          key={request.id.toString()}
+          requestId={request.id}
+          requestData={request}
         />
       ))}
     </div>
@@ -350,7 +394,11 @@ function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
 function UnstakingQueue() {
   const { address, isConnected } = useAccount();
 
-  const { data: requestIds, isLoading, error } = useReadContract({
+  const {
+    data: requestIds,
+    isLoading,
+    error,
+  } = useReadContract({
     address: stakingContractAddress,
     abi: stakingContractAbi,
     functionName: "getUserUnstakeRequests",
@@ -382,7 +430,9 @@ function UnstakingQueue() {
           Error fetching requests: {error.message}
         </div>
       ) : (
-        <UnstakeRequestList requestIds={requestIds as (string | number | bigint)[]} />
+        <UnstakeRequestList
+          requestIds={requestIds as (string | number | bigint)[]}
+        />
       )}
     </div>
   );
@@ -393,23 +443,26 @@ export default function DashboardPage() {
   const { data: ethBalance } = useBalance({ address });
   // const [refreshKey, setRefreshKey] = useState(0);
 
-  const { transactions: userTransactions, isLoading: transactionsLoading, error: transactionsError } =
-    useTransactionHistory();
+  const {
+    transactions: userTransactions,
+    isLoading: transactionsLoading,
+    error: transactionsError,
+  } = useTransactionHistory();
 
   const { data: xfiBalance } = useReadContract({
-    address: xfiTokenAddress,
-    abi: xfiTokenAbi,
+    address: sbFTTokenAddress,
+    abi: sbFTTokenAbi,
     functionName: "balanceOf",
     args: [address],
     query: {
-      enabled: Boolean(address && xfiTokenAddress),
+      enabled: Boolean(address && sbFTTokenAddress),
       refetchInterval: 5000,
     },
   });
 
   const { data: sbftWalletBalance } = useReadContract({
     address: sbFTTokenAddress,
-    abi: xfiTokenAbi,
+    abi: sbFTTokenAbi,
     functionName: "balanceOf",
     args: [address],
     query: {
@@ -467,36 +520,98 @@ export default function DashboardPage() {
     },
   });
 
-  const xfiBalanceFormatted = xfiBalance && (typeof xfiBalance === "string" || typeof xfiBalance === "number" || typeof xfiBalance === "bigint") ? safeBigIntToString(xfiBalance) : "0.00";
-  const ethBalanceFormatted = ethBalance ? formatBalance(ethBalance.formatted) : "0.00";
-  const sbftWalletBalanceFormatted = sbftWalletBalance && (typeof sbftWalletBalance === "string" || typeof sbftWalletBalance === "number" || typeof sbftWalletBalance === "bigint") ? safeBigIntToString(sbftWalletBalance) : "0.00";
-  
-  const totalPoolXFI = totalXFIInPool && (typeof totalXFIInPool === "string" || typeof totalXFIInPool === "number" || typeof totalXFIInPool === "bigint") ? safeBigIntToString(totalXFIInPool) : "0.00";
-  const pendingUnstakes = totalPendingUnstakes && (typeof totalPendingUnstakes === "string" || typeof totalPendingUnstakes === "number" || typeof totalPendingUnstakes === "bigint") ? safeBigIntToString(totalPendingUnstakes) : "0.00";
-  const currentExchangeRate = exchangeRate && (typeof exchangeRate === "string" || typeof exchangeRate === "number" || typeof exchangeRate === "bigint") ? safeBigIntToString(exchangeRate) : "1.00";
-  
-  const userXFIValue = sbftWalletBalance && exchangeRate && 
-    (typeof sbftWalletBalance === 'string' || typeof sbftWalletBalance === 'number' || typeof sbftWalletBalance === 'bigint') &&
-    (typeof exchangeRate === 'string' || typeof exchangeRate === 'number' || typeof exchangeRate === 'bigint')
-    ? safeBigIntToString((BigInt(sbftWalletBalance) * BigInt(exchangeRate)) / BigInt(1e18))
+  const xfiBalanceFormatted =
+    xfiBalance &&
+    (typeof xfiBalance === "string" ||
+      typeof xfiBalance === "number" ||
+      typeof xfiBalance === "bigint")
+      ? safeBigIntToString(xfiBalance)
+      : "0.00";
+  const ethBalanceFormatted = ethBalance
+    ? formatBalance(ethBalance.formatted)
     : "0.00";
+  const sbftWalletBalanceFormatted =
+    sbftWalletBalance &&
+    (typeof sbftWalletBalance === "string" ||
+      typeof sbftWalletBalance === "number" ||
+      typeof sbftWalletBalance === "bigint")
+      ? safeBigIntToString(sbftWalletBalance)
+      : "0.00";
 
-  const apyPercentage = annualRewardRateData && (typeof annualRewardRateData === "string" || typeof annualRewardRateData === "number" || typeof annualRewardRateData === "bigint")
-    ? (Number(annualRewardRateData) / 100)
-    : "8.00";
+  const totalPoolXFI =
+    totalXFIInPool &&
+    (typeof totalXFIInPool === "string" ||
+      typeof totalXFIInPool === "number" ||
+      typeof totalXFIInPool === "bigint")
+      ? safeBigIntToString(totalXFIInPool)
+      : "0.00";
+  const pendingUnstakes =
+    totalPendingUnstakes &&
+    (typeof totalPendingUnstakes === "string" ||
+      typeof totalPendingUnstakes === "number" ||
+      typeof totalPendingUnstakes === "bigint")
+      ? safeBigIntToString(totalPendingUnstakes)
+      : "0.00";
+  const currentExchangeRate =
+    exchangeRate &&
+    (typeof exchangeRate === "string" ||
+      typeof exchangeRate === "number" ||
+      typeof exchangeRate === "bigint")
+      ? safeBigIntToString(exchangeRate)
+      : "1.00";
 
-  const totalFeesCollected = totalFeesCollectedData && (typeof totalFeesCollectedData === "string" || typeof totalFeesCollectedData === "number" || typeof totalFeesCollectedData === "bigint") ? safeBigIntToString(totalFeesCollectedData) : "0.00";
+  const userXFIValue =
+    sbftWalletBalance &&
+    exchangeRate &&
+    (typeof sbftWalletBalance === "string" ||
+      typeof sbftWalletBalance === "number" ||
+      typeof sbftWalletBalance === "bigint") &&
+    (typeof exchangeRate === "string" ||
+      typeof exchangeRate === "number" ||
+      typeof exchangeRate === "bigint")
+      ? safeBigIntToString(
+          (BigInt(sbftWalletBalance) * BigInt(exchangeRate)) / BigInt(1e18)
+        )
+      : "0.00";
 
+  const apyPercentage =
+    annualRewardRateData &&
+    (typeof annualRewardRateData === "string" ||
+      typeof annualRewardRateData === "number" ||
+      typeof annualRewardRateData === "bigint")
+      ? Number(annualRewardRateData) / 100
+      : "8.00";
 
-  const calculateEarnings = ( baseAmount: string | number, apy: string | number, timeInYears = 1) => {
-    const amount = (typeof baseAmount === 'string' ? parseFloat(baseAmount) : baseAmount) || 0;
-    const rate = ((typeof apy === 'string' ? parseFloat(apy) : apy) / 100) || 0;
+  const totalFeesCollected =
+    totalFeesCollectedData &&
+    (typeof totalFeesCollectedData === "string" ||
+      typeof totalFeesCollectedData === "number" ||
+      typeof totalFeesCollectedData === "bigint")
+      ? safeBigIntToString(totalFeesCollectedData)
+      : "0.00";
+
+  const calculateEarnings = (
+    baseAmount: string | number,
+    apy: string | number,
+    timeInYears = 1
+  ) => {
+    const amount =
+      (typeof baseAmount === "string" ? parseFloat(baseAmount) : baseAmount) ||
+      0;
+    const rate = (typeof apy === "string" ? parseFloat(apy) : apy) / 100 || 0;
     const earnings = amount * rate * timeInYears;
     return earnings.toFixed(4);
   };
 
-  const estimatedYearlyEarnings = calculateEarnings(userXFIValue, apyPercentage);
-  const estimatedMonthlyEarnings = calculateEarnings(userXFIValue, apyPercentage, 1/12);
+  const estimatedYearlyEarnings = calculateEarnings(
+    userXFIValue,
+    apyPercentage
+  );
+  const estimatedMonthlyEarnings = calculateEarnings(
+    userXFIValue,
+    apyPercentage,
+    1 / 12
+  );
 
   const nextRewardDate = "Continuous (Auto-compounding)";
 
@@ -517,10 +632,12 @@ export default function DashboardPage() {
     <div className="max-w-6xl mx-auto py-12 px-4 mt-16">
       <div className="mb-8 text-white">
         <h1 className="text-3xl font-bold">
-          Liquid Staking Dashboard for {address?.slice(0, 6)}...{address?.slice(-4)}
+          Liquid Staking Dashboard for {address?.slice(0, 6)}...
+          {address?.slice(-4)}
         </h1>
         <p className="text-gray-400">
-          Monitor your sbFT tokens, pool performance, and manage unstaking requests
+          Monitor your sbFT tokens, pool performance, and manage unstaking
+          requests
         </p>
       </div>
 
@@ -543,7 +660,7 @@ export default function DashboardPage() {
       </div>
 
       <DebugUnstaking />
-      
+
       <UnstakingQueue />
 
       <TotalStakedStats
@@ -565,18 +682,27 @@ export default function DashboardPage() {
         <div className="grid md:grid-cols-3 gap-6">
           <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3F3F46]">
             <p className="text-gray-400 text-sm mb-2">Total XFI in Pool</p>
-            <p className="text-2xl font-bold text-blue-400">{totalPoolXFI} XFI</p>
+            <p className="text-2xl font-bold text-blue-400">
+              {totalPoolXFI} XFI
+            </p>
             <p className="text-xs text-gray-500">Backing all sbFT tokens</p>
           </div>
           <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3F3F46]">
             <p className="text-gray-400 text-sm mb-2">Pending Unstakes</p>
-            <p className="text-2xl font-bold text-yellow-400">{pendingUnstakes} XFI</p>
-            <p className="text-xs text-gray-500">Reserved for unstaking queue</p>
+            <p className="text-2xl font-bold text-yellow-400">
+              {pendingUnstakes} XFI
+            </p>
+            <p className="text-xs text-gray-500">
+              Reserved for unstaking queue
+            </p>
           </div>
           <div className="bg-[#1A1A1A] rounded-lg p-4 border border-[#3F3F46]">
             <p className="text-gray-400 text-sm mb-2">Available Liquidity</p>
             <p className="text-2xl font-bold text-green-400">
-              {(parseFloat(totalPoolXFI) - parseFloat(pendingUnstakes)).toFixed(4)} XFI
+              {(parseFloat(totalPoolXFI) - parseFloat(pendingUnstakes)).toFixed(
+                4
+              )}{" "}
+              XFI
             </p>
             <p className="text-xs text-gray-500">Available for new unstakes</p>
           </div>

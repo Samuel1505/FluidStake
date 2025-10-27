@@ -53,7 +53,7 @@ export default function Home() {
         {/* Overlay Content */}
         <div className="relative z-10 backdrop-blur-xs p-8 sm:p-16 rounded-xl text-white text-center">
           <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-6">
-            Stake XFI Token, Earn sbFTs
+            Stake ETH Token, Earn sbFTs
           </h1>
           <p className="max-w-2xl mx-auto mb-8 text-gray-300">
             Participate in the Cross Finance ecosystem by staking your XFI token
@@ -112,7 +112,7 @@ export default function Home() {
               <Repeat className="text-purple-400 w-8 h-8 mb-4" />
               <h3 className="font-semibold text-lg mb-2">Flexible Staking</h3>
               <p className="text-gray-400 text-sm">
-                Stake either XFI and receive sbFTs representing your stake,
+                Stake either ETH and receive sbFTs representing your stake,
                 allowing for flexible participation in the ecosystem.
               </p>
             </div>

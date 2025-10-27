@@ -1,0 +1,19 @@
+{
+  "network": "unknown",
+  "chainId": 84532,
+  "contractAddress": "0x453C50feeb756843fABcbb591F4BdB21d4e536Ec",
+  "deployer": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
+  "nftName": "Stake and Bake Master NFT",
+  "nftSymbol": "SBNFT",
+  "sbftTokenAddress": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6",
+  "tokenURI": "https://ipfs.io/ipfs/bafkreibki2gkw3mqs6emnoqlddxsobkhg5ntlet3273izcn6hlt5xo6odu",
+  "nftMinted": true,
+  "deploymentTime": "2025-10-24T08:29:07.900Z",
+  "transactionHash": "0x09b70f4e6a85856ff865adf0ed53925651ac44a53c03c8bd46da2c2b8a5d392a",
+  "constructorArgs": {
+    "name": "Stake and Bake Master NFT",
+    "symbol": "SBNFT",
+    "sbftToken": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6",
+    "tokenURI": "https://ipfs.io/ipfs/bafkreibki2gkw3mqs6emnoqlddxsobkhg5ntlet3273izcn6hlt5xo6odu"
+  }
+}

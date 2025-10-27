@@ -1,0 +1,18 @@
+{
+  "network": "unknown",
+  "chainId": 84532,
+  "contractAddress": "0x4f73E4cB8C765f45C3E0fe1c2a7fa03Bc0b4DAEd",
+  "deployer": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
+  "sbftTokenAddress": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6",
+  "masterNFTAddress": "0x453C50feeb756843fABcbb591F4BdB21d4e536Ec",
+  "unstakingDelay": "604800",
+  "annualRewardRate": "800",
+  "minStake": "1000000000000000",
+  "exchangeRate": "1000000000000000000",
+  "owner": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
+  "deploymentTime": "2025-10-26T23:16:32.860Z",
+  "transactionHash": "0x69cd67cdb7b468155e48491231899d25b208ef8242862ac9ac8225608a25e23d",
+  "constructorArgs": {
+    "sbftToken": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6"
+  }
+}

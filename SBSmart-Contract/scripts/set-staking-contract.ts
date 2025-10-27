@@ -11,12 +11,12 @@ async function main() {
   
   // Check deployer balance
   const balance = await deployer.getBalance();
-  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "XFI");
+  console.log("💰 Account balance:", ethers.utils.formatEther(balance), "ETH");
   
   // Contract addresses
-  const STAKING_CONTRACT_ADDRESS = "0xb59E4c855a8E142e389bB535962622B42955b9BC";
-  const STAKEANDBAKE_NFT_ADDRESS = "0x9F69a019DC9F4a4A30a255B572E7F425a7814637";
-  const SBFT_TOKEN_ADDRESS = "0x69a0eE537F098C5F84ef5d4c8b4215860F5d5206";
+  const STAKING_CONTRACT_ADDRESS = "0x4f73E4cB8C765f45C3E0fe1c2a7fa03Bc0b4DAEd";
+  const STAKEANDBAKE_NFT_ADDRESS = "0x453C50feeb756843fABcbb591F4BdB21d4e536Ec";
+  const SBFT_TOKEN_ADDRESS = "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6";
   
   console.log("\n📋 Contract Configuration:");
   console.log(`   Staking Contract: ${STAKING_CONTRACT_ADDRESS}`);

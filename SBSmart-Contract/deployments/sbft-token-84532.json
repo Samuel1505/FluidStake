@@ -1,0 +1,18 @@
+{
+  "network": "unknown",
+  "chainId": 84532,
+  "contractAddress": "0x0c4464F238909ad9c8B5748EAF90e49A505EcdA6",
+  "deployer": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
+  "tokenName": "Stake and Bake Fractional Token",
+  "tokenSymbol": "sbFT",
+  "decimals": "18",
+  "totalSupply": "0",
+  "owner": "0x92c7b8C73f9EfAA4D47545B1c0bFaf3375743e79",
+  "stakingContract": "0x0000000000000000000000000000000000000000",
+  "deploymentTime": "2025-10-24T07:30:03.012Z",
+  "transactionHash": "0x5b7a0132383c7ef9bae0668e559819b18f45c256d66ea4512137d32df553d1f3",
+  "constructorArgs": {
+    "name": "Stake and Bake Fractional Token",
+    "symbol": "sbFT"
+  }
+}
