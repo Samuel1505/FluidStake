@@ -9,6 +9,7 @@ import {
   useWaitForTransactionReceipt,
 } from "wagmi";
 import { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import TotalStakedStats from "@/components/dashboard/TotalStakedStats";
 import RewardsBreakdownChart from "@/components/dashboard/RewardsBreakdownChart";
 import TransactionHistoryTable from "@/components/dashboard/TransactionHistoryTable";
@@ -93,28 +94,56 @@ function UnstakeRequestCard({
     useWriteContract();
 
   const {
-    // isLoading: isProcessingTx,
+    isLoading: isProcessingTx,
     isSuccess: isSuccessProcess,
-    // error: errorProcess,
+    error: errorProcess,
   } = useWaitForTransactionReceipt({
     hash: hashProcess,
   });
 
   const {
-    // isLoading: isCancellingTx,
+    isLoading: isCancellingTx,
     isSuccess: isSuccessCancel,
-    // error: errorCancel,
+    error: errorCancel,
   } = useWaitForTransactionReceipt({
     hash: hashCancel,
   });
 
   useEffect(() => {
-    if (isSuccessProcess || isSuccessCancel) {
+    if (isSuccessProcess) {
       setIsProcessing(false);
+      setIsModalOpen(false);
+      toast.success("Successfully claimed your ETH!");
+      // Refresh page to update balance
+      setTimeout(() => window.location.reload(), 2000);
+    }
+  }, [isSuccessProcess]);
+
+  useEffect(() => {
+    if (isSuccessCancel) {
       setIsCancelling(false);
       setIsModalOpen(false);
+      toast.success("Unstake request cancelled. Your sbFT tokens have been returned.");
+      // Refresh page to update balance
+      setTimeout(() => window.location.reload(), 2000);
     }
-  }, [isSuccessProcess, isSuccessCancel]);
+  }, [isSuccessCancel]);
+
+  useEffect(() => {
+    if (errorProcess) {
+      setIsProcessing(false);
+      toast.error("Failed to claim ETH. Please try again.");
+      console.error("Process unstake error:", errorProcess);
+    }
+  }, [errorProcess]);
+
+  useEffect(() => {
+    if (errorCancel) {
+      setIsCancelling(false);
+      toast.error("Failed to cancel unstake request. Please try again.");
+      console.error("Cancel unstake error:", errorCancel);
+    }
+  }, [errorCancel]);
 
   const handleProcess = () => {
     if (!address) return;
@@ -172,14 +201,14 @@ function UnstakeRequestCard({
       ? Number(canProcessData[1])
       : 0;
 
-  // FIXED: Better handling of XFI amount
-  const xfiAmount = requestData.xfiAmount;
+  // FIXED: Better handling of ETH amount
+  const ethAmount = requestData.ethAmount;
   let formattedAmount;
 
   try {
-    formattedAmount = safeBigIntToString(xfiAmount);
+    formattedAmount = safeBigIntToString(ethAmount);
   } catch (error) {
-    console.error("Error formatting XFI amount:", error, xfiAmount);
+    console.error("Error formatting ETH amount:", error, ethAmount);
     formattedAmount = "0.00";
   }
 
@@ -189,14 +218,9 @@ function UnstakeRequestCard({
         <p className="text-sm text-gray-400">
           Request ID: {requestId.toString()}
         </p>
-        <p className="text-xl font-bold text-white">{formattedAmount} XFI</p>
+        <p className="text-xl font-bold text-white">{formattedAmount} ETH</p>
         <p className="text-sm text-gray-400">
           Unlocks: {unlockDate.toLocaleString()}
-        </p>
-        {/* DEBUG INFO */}
-        <p className="text-xs text-gray-500 mt-1">
-          Debug: unlockTime={unlockTime?.toString()}, amount=
-          {xfiAmount?.toString()}
         </p>
       </div>
 
@@ -210,12 +234,15 @@ function UnstakeRequestCard({
             <button
               onClick={handleProcess}
               className="mt-2 w-full sm:w-auto px-6 py-2 rounded-lg bg-green-500 text-white font-bold hover:bg-green-600 transition-colors duration-200 disabled:opacity-50"
-              disabled={isProcessing}
+              disabled={isProcessing || isProcessingTx}
             >
               {isProcessing ? (
-                <Loader2 className="animate-spin" />
+                <span className="flex items-center gap-2">
+                  <Loader2 className="animate-spin h-4 w-4" />
+                  Processing...
+                </span>
               ) : (
-                "Claim XFI"
+                "Claim ETH"
               )}
             </button>
           </>
@@ -231,7 +258,7 @@ function UnstakeRequestCard({
             <button
               onClick={() => setIsModalOpen(true)}
               className="mt-2 w-full sm:w-auto px-6 py-2 rounded-lg bg-gray-500 text-white font-bold hover:bg-gray-600 transition-colors duration-200"
-              disabled={isCancelling}
+              disabled={isCancelling || isCancellingTx}
             >
               Cancel
             </button>
@@ -252,7 +279,7 @@ function UnstakeRequestCard({
             </div>
             <p className="text-gray-300 mb-4">
               Are you sure you want to cancel this unstake request? Your sbFT
-              tokens will be minted back to your wallet.
+              tokens will be returned to your wallet at the current exchange rate.
             </p>
             <div className="flex justify-end space-x-4">
               <button
@@ -334,7 +361,7 @@ function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
 
         // Check if the result is successful and has data
         if (result.status === "success" && result.result) {
-          const [user, xfiAmount, unlockTime, processed] = result.result as [
+          const [user, ethAmount, unlockTime, processed] = result.result as [
             string,
             bigint,
             bigint,
@@ -343,7 +370,7 @@ function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
 
           console.log(`Request ${index} details:`, {
             user,
-            xfiAmount: xfiAmount?.toString(),
+            ethAmount: ethAmount?.toString(),
             unlockTime: unlockTime?.toString(),
             processed,
           });
@@ -353,7 +380,7 @@ function UnstakeRequestList({ requestIds }: UnstakeRequestListProps) {
             return {
               id: requestIds[index],
               user,
-              xfiAmount,
+              ethAmount,
               unlockTime,
               processed,
             };
