@@ -248,9 +248,9 @@ export default function SimpleStakePage() {
         value: value, // This sends the ETH
         // NO args needed!
       });
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error("Staking error:", error);
-      const errorMessage = error?.message || "Staking failed";
+      const errorMessage = error instanceof Error ? error.message : "Staking failed";
       setError(errorMessage);
       toast.error(errorMessage);
     }

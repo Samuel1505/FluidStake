@@ -14,11 +14,11 @@ export function WalletConnectProvider({
   useEffect(() => {
     const initializeWalletConnect = async () => {
       try {
-        // Wait for WalletKit to be initialized
-        await walletKit;
+        // Wait for WalletKit to be initialized and get the instance
+        const kit = await walletKit;
 
         // Handle session proposals
-        walletKit.on("session_proposal", async ({ id, params }) => {
+        kit.on("session_proposal", async ({ id, params }) => {
           try {
             const approvedNamespaces = buildApprovedNamespaces({
               proposal: params,
@@ -53,7 +53,7 @@ export function WalletConnectProvider({
               },
             });
 
-            const session = await walletKit.approveSession({
+            const session = await kit.approveSession({
               id,
               namespaces: approvedNamespaces,
             });
@@ -61,7 +61,7 @@ export function WalletConnectProvider({
             console.log("Session approved:", session);
           } catch (error) {
             console.error("Failed to approve session:", error);
-            await walletKit.rejectSession({
+            await kit.rejectSession({
               id,
               reason: getSdkError("USER_REJECTED"),
             });
@@ -69,7 +69,7 @@ export function WalletConnectProvider({
         });
 
         // Handle session requests
-        walletKit.on("session_request", async (event) => {
+        kit.on("session_request", async (event) => {
           const { topic, params, id } = event;
           const { request } = params;
 
@@ -95,7 +95,7 @@ export function WalletConnectProvider({
         });
 
         // Handle session disconnect
-        walletKit.on("session_delete", (event) => {
+        kit.on("session_delete", (event) => {
           console.log("Session disconnected:", event);
         });
 
